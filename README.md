@@ -6,8 +6,11 @@ The frontend of [GuessHowMuch](https://github.com/YoTNT/GuessHowMuch) — an AI-
 
 - **Terminal aesthetic** — Inspired by Homebrew, monospace font, minimal design
 - **Real-time quotes** — Live stock price and market data
+- **Technical indicators** — RSI, MACD, Bollinger Bands, SMA, EMA, Volume Ratio with signal colors
 - **AI predictions** — Next-day price direction predictions with reasoning
 - **News sentiment** — Recent news analyzed by ensemble AI models
+- **Skeleton loading** — Smooth loading states for all data cards
+- **Error handling** — Friendly error messages with retry support
 - **Quick picks** — One-click access to popular stocks
 
 ---
@@ -83,9 +86,11 @@ src/
 │   ├── Header.tsx          # Top navigation
 │   ├── SearchBar.tsx       # Stock symbol input
 │   ├── QuoteCard.tsx       # Real-time quote display
+│   ├── IndicatorsCard.tsx  # Technical indicators display
 │   ├── PredictionCard.tsx  # AI prediction display
 │   ├── NewsCard.tsx        # News sentiment display
-│   └── SentimentBadge.tsx  # Sentiment label
+│   ├── SentimentBadge.tsx  # Sentiment label
+│   └── Skeleton.tsx        # Loading placeholders
 ├── hooks/
 │   └── useStock.ts         # Stock data fetching hook
 ├── pages/
@@ -107,6 +112,40 @@ src/
 
 ---
 
+## Deploying to AWS
+
+This project is deployed as a static site on AWS S3 + CloudFront. Infrastructure is managed via Terraform (see [GuessHowMuch-infra](https://github.com/YoTNT/GuessHowMuch-infra)).
+```bash
+npm run build
+# Upload dist/ to S3 via CI/CD pipeline
+```
+
+---
+
 ## Related
 
 - [GuessHowMuch Backend](https://github.com/YoTNT/GuessHowMuch) — The API powering this frontend
+- [GuessHowMuch Infra](https://github.com/YoTNT/GuessHowMuch-infra) — Terraform infrastructure
+
+---
+
+## Roadmap
+
+- [x] Terminal / Homebrew aesthetic
+- [x] Real-time stock quote display
+- [x] Technical indicators (RSI, MACD, Bollinger Bands)
+- [x] AI prediction display with reasoning
+- [x] News sentiment display
+- [x] Skeleton loading states
+- [x] Error handling with retry
+- [x] Multi-environment configuration
+- [ ] System announcement banner
+- [ ] User login / registration pages
+- [ ] User settings page (API key management)
+- [ ] JWT token management
+- [ ] Protected routes
+- [ ] AWS deployment (S3 + CloudFront)
+- [ ] CI/CD pipeline (GitHub Actions)
+- [ ] Conversational UI (second phase)
+- [ ] Portfolio tracking dashboard
+- [ ] Mobile responsive design
