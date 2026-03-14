@@ -3,6 +3,8 @@ import { useStock } from '../hooks/useStock';
 import { QuoteCard } from '../components/QuoteCard';
 import { PredictionCard } from '../components/PredictionCard';
 import { NewsCard } from '../components/NewsCard';
+import { IndicatorsCard } from '../components/IndicatorsCard';
+import { QuoteCardSkeleton, IndicatorsCardSkeleton, NewsCardSkeleton } from '../components/Skeleton';
 
 interface StockPageProps {
   symbol: string;
@@ -51,13 +53,6 @@ export function StockPage({ symbol, onBack }: StockPageProps) {
         </span>
       </div>
 
-      {/* Loading */}
-      {loading && (
-        <div style={{ color: 'var(--color-muted)', fontSize: '12px' }}>
-          loading...
-        </div>
-      )}
-
       {/* Error */}
       {error && (
         <div
@@ -95,20 +90,25 @@ export function StockPage({ symbol, onBack }: StockPageProps) {
         </div>
       )}
 
-      {/* Content */}
-      {!loading && snapshot && (
+      {/* Content — only show when no error */}
+      {!error && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           {/* Left column */}
           <div>
             <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px' }}>
               // quote
             </div>
-            <QuoteCard quote={snapshot.quote} />
+            {loading ? <QuoteCardSkeleton /> : snapshot && <QuoteCard quote={snapshot.quote} />}
+
+            <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>
+              // indicators
+            </div>
+            {loading ? <IndicatorsCardSkeleton /> : snapshot?.indicators && <IndicatorsCard indicators={snapshot.indicators} />}
 
             <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>
               // news sentiment
             </div>
-            <NewsCard articles={news} />
+            {loading ? <NewsCardSkeleton /> : <NewsCard articles={news} />}
           </div>
 
           {/* Right column */}
@@ -119,22 +119,23 @@ export function StockPage({ symbol, onBack }: StockPageProps) {
               </span>
               <button
                 onClick={handleGeneratePrediction}
+                disabled={loading}
                 style={{
                   background: 'transparent',
                   border: '1px solid var(--color-border)',
-                  color: 'var(--color-accent)',
+                  color: loading ? 'var(--color-muted)' : 'var(--color-accent)',
                   fontFamily: 'var(--font-mono)',
                   fontSize: '11px',
                   padding: '4px 10px',
                   borderRadius: '2px',
-                  cursor: 'pointer',
+                  cursor: loading ? 'not-allowed' : 'pointer',
                 }}
               >
                 + generate
               </button>
             </div>
 
-            {predictions.length === 0 && (
+            {!loading && predictions.length === 0 && (
               <div style={{ color: 'var(--color-muted)', fontSize: '12px' }}>
                 no predictions yet — click generate
               </div>

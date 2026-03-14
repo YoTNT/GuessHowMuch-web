@@ -51,3 +51,8 @@ body {
   background: var(--color-accent);
   color: var(--color-bg);
 }
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
