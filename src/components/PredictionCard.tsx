@@ -16,9 +16,9 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
   }[prediction.direction];
 
   const directionSymbol = {
-    UP: '^',
-    DOWN: 'v',
-    NEUTRAL: '-',
+    UP: '↑',
+    DOWN: '↓',
+    NEUTRAL: '—',
   }[prediction.direction];
 
   const changeSign = prediction.predictedChangePercent >= 0 ? '+' : '';
@@ -71,7 +71,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
         <span
           style={{
             color: directionColor,
-            fontSize: '32px',
+            fontSize: '28px',
             fontWeight: 'bold',
             lineHeight: 1,
           }}
