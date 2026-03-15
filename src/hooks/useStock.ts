@@ -23,6 +23,21 @@ const initialState: StockState = {
   error: null,
 };
 
+// Deduplicate predictions by date, keep latest per day, sort newest first
+function deduplicatePredictions(predictions: Prediction[]): Prediction[] {
+  const byDate = predictions.reduce((acc, pred) => {
+    const existing = acc[pred.predictedFor];
+    if (!existing || pred.createdAt > existing.createdAt) {
+      acc[pred.predictedFor] = pred;
+    }
+    return acc;
+  }, {} as Record<string, Prediction>);
+
+  return Object.values(byDate).sort((a, b) =>
+    b.predictedFor.localeCompare(a.predictedFor)
+  );
+}
+
 export function useStock() {
   const [state, setState] = useState<StockState>(initialState);
 
@@ -30,8 +45,7 @@ export function useStock() {
     setState(prev => ({ ...prev, loading: true, error: null }));
 
     try {
-      // Fetch snapshot, news and predictions in parallel
-      const [snapshot, news, predictions] = await Promise.all([
+      const [snapshot, news, rawPredictions] = await Promise.all([
         api.getSnapshot(symbol),
         api.getNews(symbol),
         api.getPredictions(symbol),
@@ -40,7 +54,7 @@ export function useStock() {
       setState({
         snapshot,
         news,
-        predictions,
+        predictions: deduplicatePredictions(rawPredictions),
         loading: false,
         error: null,
       });
@@ -59,7 +73,7 @@ export function useStock() {
       const prediction = await api.generatePrediction(symbol);
       setState(prev => ({
         ...prev,
-        predictions: [prediction, ...prev.predictions],
+        predictions: deduplicatePredictions([prediction, ...prev.predictions]),
       }));
       return prediction;
     } catch (err) {
