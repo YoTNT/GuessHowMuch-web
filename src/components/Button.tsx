@@ -1,9 +1,5 @@
-// ============================================================
-// Button — Unified button component
-// Terminal aesthetic with consistent hover and loading states
-// ============================================================
-
 import { useState } from 'react';
+import { useDots } from '../hooks/useDots';
 
 interface ButtonProps {
   onClick: () => void;
@@ -21,10 +17,11 @@ export function Button({
   variant = 'primary',
   disabled = false,
   loading = false,
-  loadingText = 'loading...',
+  loadingText = 'loading',
   style,
 }: ButtonProps) {
   const [hovered, setHovered] = useState(false);
+  const dots = useDots(loading);
 
   const isDisabled = disabled || loading;
 
@@ -55,10 +52,11 @@ export function Button({
         borderRadius: '2px',
         cursor: isDisabled ? 'not-allowed' : 'pointer',
         transition: 'all 0.15s',
+        minWidth: '80px', // prevent button width from jumping
         ...style,
       }}
     >
-      {loading ? loadingText : children}
+      {loading ? `${loadingText}${dots}` : children}
     </button>
   );
 }
