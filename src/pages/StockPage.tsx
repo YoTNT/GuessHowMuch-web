@@ -10,17 +10,43 @@ import { Button } from '../components/Button';
 interface StockPageProps {
   symbol: string;
   onBack: () => void;
+  isInWatchlist: boolean;
+  onAddToWatchlist: () => Promise<boolean>;
 }
 
-export function StockPage({ symbol, onBack }: StockPageProps) {
+export function StockPage({ symbol, onBack, isInWatchlist, onAddToWatchlist }: StockPageProps) {
   const { snapshot, news, predictions, loading, error, fetchStock, generatePrediction } = useStock();
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [generateSuccess, setGenerateSuccess] = useState(false);
+  const [addingToWatchlist, setAddingToWatchlist] = useState(false);
+  const [watchlistError, setWatchlistError] = useState<string | null>(null);
+  const [inWatchlist, setInWatchlist] = useState(isInWatchlist);
 
   useEffect(() => {
     fetchStock(symbol);
   }, [symbol, fetchStock]);
+
+  useEffect(() => {
+    setInWatchlist(isInWatchlist);
+  }, [isInWatchlist]);
+
+  const handleAddToWatchlist = async () => {
+    setAddingToWatchlist(true);
+    setWatchlistError(null);
+    try {
+      const success = await onAddToWatchlist();
+      if (success) {
+        setInWatchlist(true);
+      } else {
+        setWatchlistError('Failed to add to watchlist');
+      }
+    } catch {
+      setWatchlistError('Failed to add to watchlist');
+    } finally {
+      setAddingToWatchlist(false);
+    }
+  };
 
   const handleGeneratePrediction = async () => {
     setGenerating(true);
@@ -30,7 +56,6 @@ export function StockPage({ symbol, onBack }: StockPageProps) {
     try {
       await generatePrediction(symbol);
       setGenerateSuccess(true);
-      // Clear success message after 3 seconds
       setTimeout(() => setGenerateSuccess(false), 3000);
     } catch (err) {
       setGenerateError(
@@ -51,11 +76,33 @@ export function StockPage({ symbol, onBack }: StockPageProps) {
       </div>
 
       {/* Symbol header */}
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
         <span style={{ color: 'var(--color-accent)', fontSize: '24px', fontWeight: 'bold' }}>
           $ analyze {symbol}
         </span>
+        {!inWatchlist && (
+          <Button
+            variant="primary"
+            onClick={handleAddToWatchlist}
+            loading={addingToWatchlist}
+            loadingText="adding..."
+          >
+            + add to watchlist
+          </Button>
+        )}
+        {inWatchlist && (
+          <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>
+            [in watchlist]
+          </span>
+        )}
       </div>
+
+      {/* Watchlist error */}
+      {watchlistError && (
+        <div style={{ color: 'var(--color-negative)', fontSize: '12px', marginBottom: '12px' }}>
+          [ERROR] {watchlistError}
+        </div>
+      )}
 
       {/* Error */}
       {error && (
@@ -82,7 +129,7 @@ export function StockPage({ symbol, onBack }: StockPageProps) {
         </div>
       )}
 
-      {/* Content — only show when no error */}
+      {/* Content */}
       {!error && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           {/* Left column */}
@@ -109,14 +156,20 @@ export function StockPage({ symbol, onBack }: StockPageProps) {
               <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>
                 // predictions
               </span>
-              <Button
-                onClick={handleGeneratePrediction}
-                disabled={loading}
-                loading={generating}
-                loadingText="generating..."
-              >
-                + generate
-              </Button>
+              {inWatchlist ? (
+                <Button
+                  onClick={handleGeneratePrediction}
+                  disabled={loading}
+                  loading={generating}
+                  loadingText="generating..."
+                >
+                  + generate
+                </Button>
+              ) : (
+                <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>
+                  add to watchlist to generate
+                </span>
+              )}
             </div>
 
             {/* Generate error */}
@@ -153,9 +206,15 @@ export function StockPage({ symbol, onBack }: StockPageProps) {
               </div>
             )}
 
-            {!loading && !generating && predictions.length === 0 && (
+            {!loading && !generating && predictions.length === 0 && inWatchlist && (
               <div style={{ color: 'var(--color-muted)', fontSize: '12px' }}>
                 no predictions yet — click generate
+              </div>
+            )}
+
+            {!loading && !generating && predictions.length === 0 && !inWatchlist && (
+              <div style={{ color: 'var(--color-muted)', fontSize: '12px' }}>
+                add to watchlist to see predictions
               </div>
             )}
 
