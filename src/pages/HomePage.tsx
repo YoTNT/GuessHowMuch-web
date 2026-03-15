@@ -1,4 +1,5 @@
 import { SearchBar } from '../components/SearchBar';
+import { Button } from '../components/Button';
 
 interface HomePageProps {
   onSearch: (symbol: string) => void;
@@ -31,31 +32,13 @@ export function HomePage({ onSearch, loading = false }: HomePageProps) {
         </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           {['AAPL', 'NVDA', 'TSLA', 'HOOD', 'MSFT', 'GOOGL'].map(symbol => (
-            <button
+            <Button
               key={symbol}
+              variant="secondary"
               onClick={() => onSearch(symbol)}
-              style={{
-                background: 'transparent',
-                border: '1px solid var(--color-border)',
-                color: 'var(--color-muted)',
-                fontFamily: 'var(--font-mono)',
-                fontSize: '12px',
-                padding: '4px 12px',
-                borderRadius: '2px',
-                cursor: 'pointer',
-                transition: 'color 0.15s, border-color 0.15s',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.color = 'var(--color-accent)';
-                e.currentTarget.style.borderColor = 'var(--color-accent)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.color = 'var(--color-muted)';
-                e.currentTarget.style.borderColor = 'var(--color-border)';
-              }}
             >
               {symbol}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
