@@ -1,9 +1,5 @@
-// ============================================================
-// SearchBar — Stock symbol input
-// Terminal style prompt
-// ============================================================
-
 import { useState, type KeyboardEvent } from 'react';
+import { Button } from './Button';
 
 interface SearchBarProps {
   onSearch: (symbol: string) => void;
@@ -26,12 +22,10 @@ export function SearchBar({ onSearch, loading = false }: SearchBarProps) {
 
   return (
     <div style={{ marginBottom: '32px' }}>
-      {/* Prompt label */}
       <div style={{ color: 'var(--color-muted)', fontSize: '12px', marginBottom: '8px' }}>
         enter stock symbol to analyze
       </div>
 
-      {/* Input row */}
       <div
         style={{
           display: 'flex',
@@ -43,12 +37,10 @@ export function SearchBar({ onSearch, loading = false }: SearchBarProps) {
           borderRadius: '4px',
         }}
       >
-        {/* Terminal prompt */}
         <span style={{ color: 'var(--color-accent)', userSelect: 'none' }}>
           &gt;
         </span>
 
-        {/* Input */}
         <input
           type="text"
           value={value}
@@ -68,24 +60,14 @@ export function SearchBar({ onSearch, loading = false }: SearchBarProps) {
           }}
         />
 
-        {/* Button */}
-        <button
+        <Button
           onClick={handleSearch}
-          disabled={loading || !value.trim()}
-          style={{
-            background: 'transparent',
-            border: '1px solid var(--color-border)',
-            color: loading ? 'var(--color-muted)' : 'var(--color-accent)',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '12px',
-            padding: '4px 12px',
-            borderRadius: '2px',
-            cursor: loading || !value.trim() ? 'not-allowed' : 'pointer',
-            transition: 'border-color 0.15s',
-          }}
+          disabled={!value.trim()}
+          loading={loading}
+          loadingText="loading..."
         >
-          {loading ? 'loading...' : 'analyze'}
-        </button>
+          analyze
+        </Button>
       </div>
     </div>
   );

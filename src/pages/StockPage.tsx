@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useStock } from '../hooks/useStock';
 import { QuoteCard } from '../components/QuoteCard';
 import { PredictionCard } from '../components/PredictionCard';
 import { NewsCard } from '../components/NewsCard';
 import { IndicatorsCard } from '../components/IndicatorsCard';
 import { QuoteCardSkeleton, IndicatorsCardSkeleton, NewsCardSkeleton } from '../components/Skeleton';
+import { Button } from '../components/Button';
 
 interface StockPageProps {
   symbol: string;
@@ -13,16 +14,30 @@ interface StockPageProps {
 
 export function StockPage({ symbol, onBack }: StockPageProps) {
   const { snapshot, news, predictions, loading, error, fetchStock, generatePrediction } = useStock();
+  const [generating, setGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
+  const [generateSuccess, setGenerateSuccess] = useState(false);
 
   useEffect(() => {
     fetchStock(symbol);
   }, [symbol, fetchStock]);
 
   const handleGeneratePrediction = async () => {
+    setGenerating(true);
+    setGenerateError(null);
+    setGenerateSuccess(false);
+
     try {
       await generatePrediction(symbol);
+      setGenerateSuccess(true);
+      // Clear success message after 3 seconds
+      setTimeout(() => setGenerateSuccess(false), 3000);
     } catch (err) {
-      console.error('Failed to generate prediction:', err);
+      setGenerateError(
+        err instanceof Error ? err.message : 'Failed to generate prediction'
+      );
+    } finally {
+      setGenerating(false);
     }
   };
 
@@ -30,20 +45,9 @@ export function StockPage({ symbol, onBack }: StockPageProps) {
     <div>
       {/* Back button */}
       <div style={{ marginBottom: '24px' }}>
-        <button
-          onClick={onBack}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--color-muted)',
-            fontFamily: 'var(--font-mono)',
-            fontSize: '12px',
-            cursor: 'pointer',
-            padding: '0',
-          }}
-        >
+        <Button variant="secondary" onClick={onBack}>
           &lt; back
-        </button>
+        </Button>
       </div>
 
       {/* Symbol header */}
@@ -72,21 +76,9 @@ export function StockPage({ symbol, onBack }: StockPageProps) {
               ? 'Alpha Vantage free tier allows 5 requests per minute. Please wait a moment and try again.'
               : 'Something went wrong. Please try again.'}
           </div>
-          <button
-            onClick={() => fetchStock(symbol)}
-            style={{
-              background: 'transparent',
-              border: '1px solid var(--color-border)',
-              color: 'var(--color-accent)',
-              fontFamily: 'var(--font-mono)',
-              fontSize: '11px',
-              padding: '4px 12px',
-              borderRadius: '2px',
-              cursor: 'pointer',
-            }}
-          >
+          <Button onClick={() => fetchStock(symbol)} variant="primary">
             retry
-          </button>
+          </Button>
         </div>
       )}
 
@@ -117,25 +109,51 @@ export function StockPage({ symbol, onBack }: StockPageProps) {
               <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>
                 // predictions
               </span>
-              <button
+              <Button
                 onClick={handleGeneratePrediction}
                 disabled={loading}
-                style={{
-                  background: 'transparent',
-                  border: '1px solid var(--color-border)',
-                  color: loading ? 'var(--color-muted)' : 'var(--color-accent)',
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: '11px',
-                  padding: '4px 10px',
-                  borderRadius: '2px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                }}
+                loading={generating}
+                loadingText="generating..."
               >
                 + generate
-              </button>
+              </Button>
             </div>
 
-            {!loading && predictions.length === 0 && (
+            {/* Generate error */}
+            {generateError && (
+              <div
+                style={{
+                  border: '1px solid var(--color-negative)',
+                  backgroundColor: 'rgba(255, 68, 68, 0.05)',
+                  padding: '10px 12px',
+                  borderRadius: '4px',
+                  marginBottom: '12px',
+                  fontSize: '12px',
+                  color: 'var(--color-negative)',
+                }}
+              >
+                [ERROR] {generateError}
+              </div>
+            )}
+
+            {/* Generate success */}
+            {generateSuccess && (
+              <div
+                style={{
+                  border: '1px solid var(--color-positive)',
+                  backgroundColor: 'rgba(0, 255, 136, 0.05)',
+                  padding: '10px 12px',
+                  borderRadius: '4px',
+                  marginBottom: '12px',
+                  fontSize: '12px',
+                  color: 'var(--color-positive)',
+                }}
+              >
+                [OK] Prediction generated successfully
+              </div>
+            )}
+
+            {!loading && !generating && predictions.length === 0 && (
               <div style={{ color: 'var(--color-muted)', fontSize: '12px' }}>
                 no predictions yet — click generate
               </div>
