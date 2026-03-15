@@ -12,6 +12,9 @@ The frontend of [GuessHowMuch](https://github.com/YoTNT/GuessHowMuch) — an AI-
 - **Skeleton loading** — Smooth loading states for all data cards
 - **Error handling** — Friendly error messages with retry support
 - **Quick picks** — One-click access to popular stocks
+- **Watchlist UX** — Browse any stock, add to watchlist to generate predictions
+- **Announcement banner** — System announcements with INFO/WARNING/NEW/DONATION types
+- **Unified button component** — Consistent hover, loading, and disabled states
 
 ---
 
@@ -81,23 +84,26 @@ This project uses environment files per environment:
 ```
 src/
 ├── api/
-│   └── client.ts          # Centralized API calls
+│   └── client.ts            # Centralized API calls
 ├── components/
-│   ├── Header.tsx          # Top navigation
-│   ├── SearchBar.tsx       # Stock symbol input
-│   ├── QuoteCard.tsx       # Real-time quote display
-│   ├── IndicatorsCard.tsx  # Technical indicators display
-│   ├── PredictionCard.tsx  # AI prediction display
-│   ├── NewsCard.tsx        # News sentiment display
-│   ├── SentimentBadge.tsx  # Sentiment label
-│   └── Skeleton.tsx        # Loading placeholders
+│   ├── Banner.tsx            # System announcement banner
+│   ├── Button.tsx            # Unified button component
+│   ├── Header.tsx            # Top navigation
+│   ├── SearchBar.tsx         # Stock symbol input
+│   ├── QuoteCard.tsx         # Real-time quote display
+│   ├── IndicatorsCard.tsx    # Technical indicators display
+│   ├── PredictionCard.tsx    # AI prediction display
+│   ├── NewsCard.tsx          # News sentiment display
+│   ├── SentimentBadge.tsx    # Sentiment label
+│   └── Skeleton.tsx          # Loading placeholders
 ├── hooks/
-│   └── useStock.ts         # Stock data fetching hook
+│   ├── useStock.ts           # Stock data fetching hook
+│   └── useDots.ts            # Animated loading dots hook
 ├── pages/
-│   ├── HomePage.tsx        # Search page
-│   └── StockPage.tsx       # Stock detail page
+│   ├── HomePage.tsx          # Search page
+│   └── StockPage.tsx         # Stock detail page
 ├── types/
-│   └── index.ts            # TypeScript type definitions
+│   └── index.ts              # TypeScript type definitions
 ├── App.tsx
 └── main.tsx
 ```
@@ -139,13 +145,15 @@ npm run build
 - [x] Skeleton loading states
 - [x] Error handling with retry
 - [x] Multi-environment configuration
-- [ ] System announcement banner
+- [x] Unified Button component with hover and loading states
+- [x] Watchlist UX (browse any stock, add to watchlist to generate predictions)
+- [x] System announcement banner
+- [ ] AWS deployment (S3 + CloudFront)
+- [ ] CI/CD pipeline (GitHub Actions)
 - [ ] User login / registration pages
 - [ ] User settings page (API key management)
 - [ ] JWT token management
 - [ ] Protected routes
-- [ ] AWS deployment (S3 + CloudFront)
-- [ ] CI/CD pipeline (GitHub Actions)
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design
