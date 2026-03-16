@@ -15,6 +15,8 @@ The frontend of [GuessHowMuch](https://github.com/YoTNT/GuessHowMuch) — an AI-
 - **Watchlist UX** — Browse any stock, add to watchlist to generate predictions
 - **Announcement banner** — System announcements with INFO/WARNING/NEW/DONATION types
 - **Unified button component** — Consistent hover, loading, and disabled states
+- **User authentication** — JWT login/register modal with remember me option
+- **API key management** — Per-user encrypted API keys (BYOK), masked display
 
 ---
 
@@ -148,12 +150,11 @@ npm run build
 - [x] Unified Button component with hover and loading states
 - [x] Watchlist UX (browse any stock, add to watchlist to generate predictions)
 - [x] System announcement banner
+- [x] User login / registration pages (modal with remember me)
+- [x] User settings page (API key management with masked display)
+- [x] JWT token management (access + refresh tokens)
 - [ ] AWS deployment (S3 + CloudFront)
 - [ ] CI/CD pipeline (GitHub Actions)
-- [ ] User login / registration pages
-- [ ] User settings page (API key management)
-- [ ] JWT token management
-- [ ] Protected routes
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design

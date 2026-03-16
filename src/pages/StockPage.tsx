@@ -6,15 +6,29 @@ import { NewsCard } from '../components/NewsCard';
 import { IndicatorsCard } from '../components/IndicatorsCard';
 import { QuoteCardSkeleton, IndicatorsCardSkeleton, NewsCardSkeleton } from '../components/Skeleton';
 import { Button } from '../components/Button';
+import type { UserProfile } from '../api/client';
 
 interface StockPageProps {
   symbol: string;
   onBack: () => void;
+  isLoggedIn: boolean;
   isInWatchlist: boolean;
   onAddToWatchlist: () => Promise<boolean>;
+  onLoginClick: () => void;
+  onSettingsClick: () => void;
+  user: UserProfile | null;
 }
 
-export function StockPage({ symbol, onBack, isInWatchlist, onAddToWatchlist }: StockPageProps) {
+export function StockPage({
+  symbol,
+  onBack,
+  isLoggedIn,
+  isInWatchlist,
+  onAddToWatchlist,
+  onLoginClick,
+  onSettingsClick,
+  user,
+}: StockPageProps) {
   const { snapshot, news, predictions, loading, error, fetchStock, generatePrediction } = useStock();
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
@@ -36,11 +50,8 @@ export function StockPage({ symbol, onBack, isInWatchlist, onAddToWatchlist }: S
     setWatchlistError(null);
     try {
       const success = await onAddToWatchlist();
-      if (success) {
-        setInWatchlist(true);
-      } else {
-        setWatchlistError('Failed to add to watchlist');
-      }
+      if (success) setInWatchlist(true);
+      else setWatchlistError('Failed to add to watchlist');
     } catch {
       setWatchlistError('Failed to add to watchlist');
     } finally {
@@ -52,45 +63,144 @@ export function StockPage({ symbol, onBack, isInWatchlist, onAddToWatchlist }: S
     setGenerating(true);
     setGenerateError(null);
     setGenerateSuccess(false);
-
     try {
       await generatePrediction(symbol);
       setGenerateSuccess(true);
       setTimeout(() => setGenerateSuccess(false), 3000);
     } catch (err) {
-      setGenerateError(
-        err instanceof Error ? err.message : 'Failed to generate prediction'
-      );
+      setGenerateError(err instanceof Error ? err.message : 'Failed to generate prediction');
     } finally {
       setGenerating(false);
     }
   };
 
+  const hasAnthropicKey = !!user?.apiKeys?.anthropic;
+
+  // ── Prediction panel content ──────────────────────────────
+  const renderPredictionPanel = () => {
+    // Not logged in
+    if (!isLoggedIn) {
+      return (
+        <div style={{
+          border: '1px solid var(--color-border)',
+          borderRadius: '4px',
+          padding: '16px',
+          fontSize: '12px',
+        }}>
+          <div style={{ color: 'var(--color-muted)', marginBottom: '12px' }}>
+            # Login and provide your API keys to generate AI predictions
+          </div>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button onClick={onLoginClick}>login</Button>
+          </div>
+        </div>
+      );
+    }
+
+    // Logged in but no Anthropic key
+    if (!hasAnthropicKey) {
+      return (
+        <div style={{
+          border: '1px solid var(--color-border)',
+          borderRadius: '4px',
+          padding: '16px',
+          fontSize: '12px',
+        }}>
+          <div style={{ color: 'var(--color-muted)', marginBottom: '12px' }}>
+            # Add your Anthropic API key to unlock AI predictions
+          </div>
+          <Button variant="secondary" onClick={onSettingsClick}>
+            go to settings →
+          </Button>
+        </div>
+      );
+    }
+
+    // Logged in, has key, not in watchlist
+    if (!inWatchlist) {
+      return (
+        <div style={{
+          border: '1px solid var(--color-border)',
+          borderRadius: '4px',
+          padding: '16px',
+          fontSize: '12px',
+        }}>
+          <div style={{ color: 'var(--color-muted)', marginBottom: '12px' }}>
+            # Add {symbol} to your watchlist to generate predictions
+          </div>
+          <Button onClick={handleAddToWatchlist} loading={addingToWatchlist} loadingText="adding">
+            + add to watchlist
+          </Button>
+        </div>
+      );
+    }
+
+    // Full access
+    return (
+      <>
+        {generateError && (
+          <div style={{
+            border: '1px solid var(--color-negative)',
+            backgroundColor: 'rgba(255, 68, 68, 0.05)',
+            padding: '10px 12px',
+            borderRadius: '4px',
+            marginBottom: '12px',
+            fontSize: '12px',
+            color: 'var(--color-negative)',
+          }}>
+            [ERROR] {generateError}
+          </div>
+        )}
+        {generateSuccess && (
+          <div style={{
+            border: '1px solid var(--color-positive)',
+            backgroundColor: 'rgba(0, 255, 136, 0.05)',
+            padding: '10px 12px',
+            borderRadius: '4px',
+            marginBottom: '12px',
+            fontSize: '12px',
+            color: 'var(--color-positive)',
+          }}>
+            [OK] Prediction generated successfully
+          </div>
+        )}
+        {!loading && predictions.length === 0 && (
+          <div style={{ color: 'var(--color-muted)', fontSize: '12px', marginBottom: '12px' }}>
+            no predictions yet — click generate
+          </div>
+        )}
+        {predictions.map(prediction => (
+          <PredictionCard key={prediction.id} prediction={prediction} />
+        ))}
+      </>
+    );
+  };
+
   return (
     <div>
-      {/* Back button */}
+      {/* Back */}
       <div style={{ marginBottom: '24px' }}>
         <Button variant="secondary" onClick={onBack}>
           &lt; back
         </Button>
       </div>
 
-      {/* Symbol header */}
+      {/* Header */}
       <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '16px' }}>
         <span style={{ color: 'var(--color-accent)', fontSize: '24px', fontWeight: 'bold' }}>
           $ analyze {symbol}
         </span>
-        {!inWatchlist && (
+        {isLoggedIn && !inWatchlist && (
           <Button
             variant="primary"
             onClick={handleAddToWatchlist}
             loading={addingToWatchlist}
-            loadingText="adding..."
+            loadingText="adding"
           >
             + add to watchlist
           </Button>
         )}
-        {inWatchlist && (
+        {isLoggedIn && inWatchlist && (
           <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>
             [in watchlist]
           </span>
@@ -106,15 +216,13 @@ export function StockPage({ symbol, onBack, isInWatchlist, onAddToWatchlist }: S
 
       {/* Error */}
       {error && (
-        <div
-          style={{
-            border: '1px solid var(--color-negative)',
-            backgroundColor: 'rgba(255, 68, 68, 0.05)',
-            padding: '16px',
-            borderRadius: '4px',
-            marginBottom: '16px',
-          }}
-        >
+        <div style={{
+          border: '1px solid var(--color-negative)',
+          backgroundColor: 'rgba(255, 68, 68, 0.05)',
+          padding: '16px',
+          borderRadius: '4px',
+          marginBottom: '16px',
+        }}>
           <div style={{ color: 'var(--color-negative)', fontSize: '12px', marginBottom: '8px' }}>
             [ERROR] {error}
           </div>
@@ -123,16 +231,14 @@ export function StockPage({ symbol, onBack, isInWatchlist, onAddToWatchlist }: S
               ? 'Alpha Vantage free tier allows 5 requests per minute. Please wait a moment and try again.'
               : 'Something went wrong. Please try again.'}
           </div>
-          <Button onClick={() => fetchStock(symbol)} variant="primary">
-            retry
-          </Button>
+          <Button onClick={() => fetchStock(symbol)}>retry</Button>
         </div>
       )}
 
       {/* Content */}
       {!error && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          {/* Left column */}
+          {/* Left */}
           <div>
             <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px' }}>
               // quote
@@ -150,77 +256,24 @@ export function StockPage({ symbol, onBack, isInWatchlist, onAddToWatchlist }: S
             {loading ? <NewsCardSkeleton /> : <NewsCard articles={news} />}
           </div>
 
-          {/* Right column */}
+          {/* Right */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>
                 // predictions
               </span>
-              {inWatchlist ? (
+              {isLoggedIn && inWatchlist && hasAnthropicKey && (
                 <Button
                   onClick={handleGeneratePrediction}
                   disabled={loading}
                   loading={generating}
-                  loadingText="generating..."
+                  loadingText="generating"
                 >
                   + generate
                 </Button>
-              ) : (
-                <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>
-                  add to watchlist to generate
-                </span>
               )}
             </div>
-
-            {/* Generate error */}
-            {generateError && (
-              <div
-                style={{
-                  border: '1px solid var(--color-negative)',
-                  backgroundColor: 'rgba(255, 68, 68, 0.05)',
-                  padding: '10px 12px',
-                  borderRadius: '4px',
-                  marginBottom: '12px',
-                  fontSize: '12px',
-                  color: 'var(--color-negative)',
-                }}
-              >
-                [ERROR] {generateError}
-              </div>
-            )}
-
-            {/* Generate success */}
-            {generateSuccess && (
-              <div
-                style={{
-                  border: '1px solid var(--color-positive)',
-                  backgroundColor: 'rgba(0, 255, 136, 0.05)',
-                  padding: '10px 12px',
-                  borderRadius: '4px',
-                  marginBottom: '12px',
-                  fontSize: '12px',
-                  color: 'var(--color-positive)',
-                }}
-              >
-                [OK] Prediction generated successfully
-              </div>
-            )}
-
-            {!loading && !generating && predictions.length === 0 && inWatchlist && (
-              <div style={{ color: 'var(--color-muted)', fontSize: '12px' }}>
-                no predictions yet — click generate
-              </div>
-            )}
-
-            {!loading && !generating && predictions.length === 0 && !inWatchlist && (
-              <div style={{ color: 'var(--color-muted)', fontSize: '12px' }}>
-                add to watchlist to see predictions
-              </div>
-            )}
-
-            {predictions.map(prediction => (
-              <PredictionCard key={prediction.id} prediction={prediction} />
-            ))}
+            {renderPredictionPanel()}
           </div>
         </div>
       )}

@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Header } from './components/Header';
 import { Banner } from './components/Banner';
+import { AuthModal } from './components/AuthModal';
 import type { Announcement } from './components/Banner';
 import { HomePage } from './pages/HomePage';
 import { StockPage } from './pages/StockPage';
+import { useAuth } from './hooks/useAuth';
 import { api } from './api/client';
-import type { Stock } from './types';
+import { SettingsPage } from './pages/SettingsPage';
 
-type Page = 'home' | 'stock';
+type Page = 'home' | 'stock' | 'settings';
 
 const ANNOUNCEMENTS: Announcement[] = [
   {
@@ -18,29 +20,17 @@ const ANNOUNCEMENTS: Announcement[] = [
   {
     id: '2',
     type: 'INFO',
-    message: 'Free tier uses Alpha Vantage (25 requests/day). Add stocks to watchlist for best experience.',
-  },
-  {
-    id: '3',
-    type: 'DONATION',
-    message: 'Find this useful? Support the project.',
-    link: {
-      text: 'Buy me a coffee',
-      url: 'https://buymeacoffee.com',
-    },
+    message: 'Login and add your API keys to unlock AI predictions.',
   },
 ];
 
 export default function App() {
+  const { user, loading, isLoggedIn, login, register, logout, updateUser } = useAuth();
   const [page, setPage] = useState<Page>('home');
   const [symbol, setSymbol] = useState<string>('');
-  const [watchlist, setWatchlist] = useState<Stock[]>([]);
-
-  useEffect(() => {
-    api.getWatchlist()
-      .then(stocks => setWatchlist(stocks))
-      .catch(() => {});
-  }, []);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const handleSearch = (s: string) => {
     setSymbol(s);
@@ -52,28 +42,90 @@ export default function App() {
     setSymbol('');
   };
 
-  const handleAddToWatchlist = async (stock: Stock) => {
+  const handleLoginClick = () => {
+    setAuthError(null);
+    setShowAuthModal(true);
+  };
+
+  const handleLogin = async (email: string, password: string, rememberMe: boolean) => {
+    setAuthLoading(true);
+    setAuthError(null);
     try {
-      const added = await api.addStock(
-        stock.symbol,
-        stock.name,
-        stock.sector,
-        stock.exchange
-      );
-      setWatchlist(prev => [...prev, added]);
+      await login(email, password, rememberMe);
+      setShowAuthModal(false);
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleRegister = async (email: string, password: string) => {
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      await register(email, password);
+      setShowAuthModal(false);
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : 'Registration failed');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    setPage('home');
+    setSymbol('');
+  };
+
+  const handleSettingsClick = () => {
+    setPage('settings');
+  };
+
+  const isInWatchlist = (sym: string) => {
+    return user?.watchlist?.includes(sym) ?? false;
+  };
+
+  const handleAddToWatchlist = async (sym: string) => {
+    try {
+      const watchlist = await api.addToWatchlist(sym);
+      if (user) {
+        updateUser({ ...user, watchlist });
+      }
       return true;
     } catch {
       return false;
     }
   };
 
-  const isInWatchlist = (sym: string) =>
-    watchlist.some(s => s.symbol === sym);
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: 'var(--color-bg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'var(--color-muted)',
+        fontFamily: 'var(--font-mono)',
+        fontSize: '12px',
+      }}>
+        loading...
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-bg)' }}>
-      <Header />
+      <Header
+        user={user}
+        onLoginClick={handleLoginClick}
+        onLogout={handleLogout}
+        onSettingsClick={handleSettingsClick}
+      />
       <Banner announcements={ANNOUNCEMENTS} />
+
       <main style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
         {page === 'home' && (
           <HomePage onSearch={handleSearch} />
@@ -82,18 +134,32 @@ export default function App() {
           <StockPage
             symbol={symbol}
             onBack={handleBack}
+            isLoggedIn={isLoggedIn}
             isInWatchlist={isInWatchlist(symbol)}
-            onAddToWatchlist={() => handleAddToWatchlist({
-              symbol,
-              name: symbol,
-              sector: 'Unknown',
-              exchange: 'NASDAQ',
-              addedAt: new Date().toISOString(),
-              isActive: true,
-            })}
+            onAddToWatchlist={() => handleAddToWatchlist(symbol)}
+            onLoginClick={handleLoginClick}
+            onSettingsClick={handleSettingsClick}
+            user={user}
+          />
+        )}
+        {page === 'settings' && user != null && (
+          <SettingsPage
+            user={user}
+            onBack={handleBack}
+            onUpdateUser={updateUser}
           />
         )}
       </main>
+
+      {showAuthModal && (
+        <AuthModal
+          onLogin={handleLogin}
+          onRegister={handleRegister}
+          onClose={() => setShowAuthModal(false)}
+          error={authError}
+          loading={authLoading}
+        />
+      )}
     </div>
   );
 }
