@@ -88,6 +88,7 @@ src/
 ├── api/
 │   └── client.ts            # Centralized API calls
 ├── components/
+│   ├── AuthModal.tsx         # Login/register modal
 │   ├── Banner.tsx            # System announcement banner
 │   ├── Button.tsx            # Unified button component
 │   ├── Header.tsx            # Top navigation
@@ -99,11 +100,13 @@ src/
 │   ├── SentimentBadge.tsx    # Sentiment label
 │   └── Skeleton.tsx          # Loading placeholders
 ├── hooks/
+│   ├── useAuth.ts            # Authentication state management
 │   ├── useStock.ts           # Stock data fetching hook
 │   └── useDots.ts            # Animated loading dots hook
 ├── pages/
 │   ├── HomePage.tsx          # Search page
 │   └── StockPage.tsx         # Stock detail page
+│   └── SettingsPage.tsx      # User settings (API key management)
 ├── types/
 │   └── index.ts              # TypeScript type definitions
 ├── App.tsx
@@ -153,8 +156,10 @@ npm run build
 - [x] User login / registration pages (modal with remember me)
 - [x] User settings page (API key management with masked display)
 - [x] JWT token management (access + refresh tokens)
-- [ ] AWS deployment (S3 + CloudFront)
+- [x] AWS deployment (S3 + CloudFront + stockguesser.com)
+- [x] Production API URL configuration
 - [ ] CI/CD pipeline (GitHub Actions)
+- [ ] Prediction system using user's own API keys (BYOK)
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design
