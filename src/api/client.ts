@@ -6,7 +6,7 @@ import type {
   Prediction,
 } from '../types';
 
-const BASE_URL = '/api';
+const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
 // ── Auth token management ─────────────────────────────────
 let accessToken: string | null = null;
