@@ -170,8 +170,8 @@ export function StockPage({
         </div>
       )}
 
-      {/* Alpha Vantage key missing banner */}
-      {isLoggedIn && !hasAlphaVantageKey && (
+      {/* Alpha Vantage key missing banner — only show if no error */}
+      {isLoggedIn && !hasAlphaVantageKey && !error && (
         <div style={{ border: '1px solid var(--color-border)', backgroundColor: 'rgba(255, 255, 255, 0.02)', padding: '10px 12px', borderRadius: '4px', marginBottom: '16px', fontSize: '11px', color: 'var(--color-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>[INFO] using shared API quota — add your Alpha Vantage key in Settings for better rate limits</span>
           <button
