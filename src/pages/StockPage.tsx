@@ -45,6 +45,10 @@ export function StockPage({
     setInWatchlist(isInWatchlist);
   }, [isInWatchlist]);
 
+  const hasAlphaVantageKey = !!user?.apiKeys?.alphaVantage;
+  const hasAnthropicKey = !!user?.apiKeys?.anthropic;
+  const hasNewsApiKey = !!user?.apiKeys?.newsApi;
+
   const handleAddToWatchlist = async () => {
     setAddingToWatchlist(true);
     setWatchlistError(null);
@@ -74,38 +78,22 @@ export function StockPage({
     }
   };
 
-  const hasAnthropicKey = !!user?.apiKeys?.anthropic;
-
-  // ── Prediction panel content ──────────────────────────────
+  // ── Prediction panel ──────────────────────────────────────
   const renderPredictionPanel = () => {
-    // Not logged in
     if (!isLoggedIn) {
       return (
-        <div style={{
-          border: '1px solid var(--color-border)',
-          borderRadius: '4px',
-          padding: '16px',
-          fontSize: '12px',
-        }}>
+        <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '16px', fontSize: '12px' }}>
           <div style={{ color: 'var(--color-muted)', marginBottom: '12px' }}>
             # Login and provide your API keys to generate AI predictions
           </div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <Button onClick={onLoginClick}>login</Button>
-          </div>
+          <Button onClick={onLoginClick}>login</Button>
         </div>
       );
     }
 
-    // Logged in but no Anthropic key
     if (!hasAnthropicKey) {
       return (
-        <div style={{
-          border: '1px solid var(--color-border)',
-          borderRadius: '4px',
-          padding: '16px',
-          fontSize: '12px',
-        }}>
+        <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '16px', fontSize: '12px' }}>
           <div style={{ color: 'var(--color-muted)', marginBottom: '12px' }}>
             # Add your Anthropic API key to unlock AI predictions
           </div>
@@ -116,15 +104,9 @@ export function StockPage({
       );
     }
 
-    // Logged in, has key, not in watchlist
     if (!inWatchlist) {
       return (
-        <div style={{
-          border: '1px solid var(--color-border)',
-          borderRadius: '4px',
-          padding: '16px',
-          fontSize: '12px',
-        }}>
+        <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '16px', fontSize: '12px' }}>
           <div style={{ color: 'var(--color-muted)', marginBottom: '12px' }}>
             # Add {symbol} to your watchlist to generate predictions
           </div>
@@ -135,32 +117,15 @@ export function StockPage({
       );
     }
 
-    // Full access
     return (
       <>
         {generateError && (
-          <div style={{
-            border: '1px solid var(--color-negative)',
-            backgroundColor: 'rgba(255, 68, 68, 0.05)',
-            padding: '10px 12px',
-            borderRadius: '4px',
-            marginBottom: '12px',
-            fontSize: '12px',
-            color: 'var(--color-negative)',
-          }}>
+          <div style={{ border: '1px solid var(--color-negative)', backgroundColor: 'rgba(255, 68, 68, 0.05)', padding: '10px 12px', borderRadius: '4px', marginBottom: '12px', fontSize: '12px', color: 'var(--color-negative)' }}>
             [ERROR] {generateError}
           </div>
         )}
         {generateSuccess && (
-          <div style={{
-            border: '1px solid var(--color-positive)',
-            backgroundColor: 'rgba(0, 255, 136, 0.05)',
-            padding: '10px 12px',
-            borderRadius: '4px',
-            marginBottom: '12px',
-            fontSize: '12px',
-            color: 'var(--color-positive)',
-          }}>
+          <div style={{ border: '1px solid var(--color-positive)', backgroundColor: 'rgba(0, 255, 136, 0.05)', padding: '10px 12px', borderRadius: '4px', marginBottom: '12px', fontSize: '12px', color: 'var(--color-positive)' }}>
             [OK] Prediction generated successfully
           </div>
         )}
@@ -180,9 +145,7 @@ export function StockPage({
     <div>
       {/* Back */}
       <div style={{ marginBottom: '24px' }}>
-        <Button variant="secondary" onClick={onBack}>
-          &lt; back
-        </Button>
+        <Button variant="secondary" onClick={onBack}>&lt; back</Button>
       </div>
 
       {/* Header */}
@@ -191,19 +154,12 @@ export function StockPage({
           $ analyze {symbol}
         </span>
         {isLoggedIn && !inWatchlist && (
-          <Button
-            variant="primary"
-            onClick={handleAddToWatchlist}
-            loading={addingToWatchlist}
-            loadingText="adding"
-          >
+          <Button variant="primary" onClick={handleAddToWatchlist} loading={addingToWatchlist} loadingText="adding">
             + add to watchlist
           </Button>
         )}
         {isLoggedIn && inWatchlist && (
-          <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>
-            [in watchlist]
-          </span>
+          <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>[in watchlist]</span>
         )}
       </div>
 
@@ -214,15 +170,22 @@ export function StockPage({
         </div>
       )}
 
-      {/* Error */}
+      {/* Alpha Vantage key missing banner */}
+      {isLoggedIn && !hasAlphaVantageKey && (
+        <div style={{ border: '1px solid var(--color-border)', backgroundColor: 'rgba(255, 255, 255, 0.02)', padding: '10px 12px', borderRadius: '4px', marginBottom: '16px', fontSize: '11px', color: 'var(--color-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>[INFO] using shared API quota — add your Alpha Vantage key in Settings for better rate limits</span>
+          <button
+            onClick={onSettingsClick}
+            style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-accent)', fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '0', marginLeft: '12px', whiteSpace: 'nowrap' }}
+          >
+            settings →
+          </button>
+        </div>
+      )}
+
+      {/* Fetch error */}
       {error && (
-        <div style={{
-          border: '1px solid var(--color-negative)',
-          backgroundColor: 'rgba(255, 68, 68, 0.05)',
-          padding: '16px',
-          borderRadius: '4px',
-          marginBottom: '16px',
-        }}>
+        <div style={{ border: '1px solid var(--color-negative)', backgroundColor: 'rgba(255, 68, 68, 0.05)', padding: '16px', borderRadius: '4px', marginBottom: '16px' }}>
           <div style={{ color: 'var(--color-negative)', fontSize: '12px', marginBottom: '8px' }}>
             [ERROR] {error}
           </div>
@@ -240,35 +203,38 @@ export function StockPage({
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
           {/* Left */}
           <div>
-            <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px' }}>
-              // quote
-            </div>
+            <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px' }}>// quote</div>
             {loading ? <QuoteCardSkeleton /> : snapshot && <QuoteCard quote={snapshot.quote} />}
 
-            <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>
-              // indicators
-            </div>
+            <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>// indicators</div>
             {loading ? <IndicatorsCardSkeleton /> : snapshot?.indicators && <IndicatorsCard indicators={snapshot.indicators} />}
 
-            <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>
-              // news sentiment
-            </div>
-            {loading ? <NewsCardSkeleton /> : <NewsCard articles={news} />}
+            <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>// news sentiment</div>
+            {loading ? (
+              <NewsCardSkeleton />
+            ) : isLoggedIn && !hasNewsApiKey ? (
+              <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '16px', fontSize: '11px' }}>
+                <div style={{ color: 'var(--color-muted)', marginBottom: '10px' }}>
+                  [INFO] add your NewsAPI key to unlock news sentiment analysis
+                </div>
+                <button
+                  onClick={onSettingsClick}
+                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-accent)', fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '0' }}
+                >
+                  settings →
+                </button>
+              </div>
+            ) : (
+              <NewsCard articles={news} />
+            )}
           </div>
 
           {/* Right */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>
-                // predictions
-              </span>
+              <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>// predictions</span>
               {isLoggedIn && inWatchlist && hasAnthropicKey && (
-                <Button
-                  onClick={handleGeneratePrediction}
-                  disabled={loading}
-                  loading={generating}
-                  loadingText="generating"
-                >
+                <Button onClick={handleGeneratePrediction} disabled={loading} loading={generating} loadingText="generating">
                   + generate
                 </Button>
               )}
