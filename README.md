@@ -125,10 +125,15 @@ src/
 
 ## Deploying to AWS
 
-This project is deployed as a static site on AWS S3 + CloudFront. Infrastructure is managed via Terraform (see [GuessHowMuch-infra](https://github.com/YoTNT/GuessHowMuch-infra)).
+This project is deployed automatically via GitHub Actions on every push to `main`.
+
+Manual deployment:
 ```bash
 npm run build
-# Upload dist/ to S3 via CI/CD pipeline
+aws s3 sync dist/ s3://guesshowmuch-production-frontend --delete
+aws cloudfront create-invalidation \
+  --distribution-id E29YPQIE5BHVGN \
+  --paths "/*"
 ```
 
 ---
@@ -158,7 +163,7 @@ npm run build
 - [x] JWT token management (access + refresh tokens)
 - [x] AWS deployment (S3 + CloudFront + stockguesser.com)
 - [x] Production API URL configuration
-- [ ] CI/CD pipeline (GitHub Actions)
+- [x] CI/CD pipeline (GitHub Actions)
 - [ ] Prediction system using user's own API keys (BYOK)
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
