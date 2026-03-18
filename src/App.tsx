@@ -1,3 +1,4 @@
+// GuessHowMuch Frontend v1.0.0
 import { useState } from 'react';
 import { Header } from './components/Header';
 import { Banner } from './components/Banner';
