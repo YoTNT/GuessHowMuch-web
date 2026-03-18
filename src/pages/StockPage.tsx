@@ -189,12 +189,19 @@ export function StockPage({
           <div style={{ color: 'var(--color-negative)', fontSize: '12px', marginBottom: '8px' }}>
             [ERROR] {error}
           </div>
-          <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '12px' }}>
-            {error.includes('rate limit')
-              ? 'Alpha Vantage free tier allows 5 requests per minute. Please wait a moment and try again.'
-              : 'Something went wrong. Please try again.'}
+          {!error.includes('API key required') && (
+            <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '12px' }}>
+              {error.includes('rate limit')
+                ? 'Alpha Vantage free tier allows 5 requests per minute. Please wait a moment and try again.'
+                : 'Something went wrong. Please try again.'}
+            </div>
+          )}
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Button onClick={() => fetchStock(symbol)}>retry</Button>
+            {error.includes('API key required') && (
+              <Button variant="secondary" onClick={onSettingsClick}>settings →</Button>
+            )}
           </div>
-          <Button onClick={() => fetchStock(symbol)}>retry</Button>
         </div>
       )}
 
