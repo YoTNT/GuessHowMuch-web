@@ -206,9 +206,9 @@ export function StockPage({
       )}
 
       {/* Content */}
-      {!error && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-          {/* Left */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+        {/* Left — only show if no error */}
+        {!error && (
           <div>
             <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px' }}>// quote</div>
             {loading ? <QuoteCardSkeleton /> : snapshot && <QuoteCard quote={snapshot.quote} />}
@@ -235,21 +235,21 @@ export function StockPage({
               <NewsCard articles={news} />
             )}
           </div>
+        )}
 
-          {/* Right */}
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-              <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>// predictions</span>
-              {isLoggedIn && inWatchlist && hasAnthropicKey && (
-                <Button onClick={handleGeneratePrediction} disabled={loading} loading={generating} loadingText="generating">
-                  + generate
-                </Button>
-              )}
-            </div>
-            {renderPredictionPanel()}
+        {/* Right — always show prediction panel */}
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>// predictions</span>
+            {isLoggedIn && inWatchlist && hasAnthropicKey && (
+              <Button onClick={handleGeneratePrediction} disabled={loading} loading={generating} loadingText="generating">
+                + generate
+              </Button>
+            )}
           </div>
+          {renderPredictionPanel()}
         </div>
-      )}
+      </div>
     </div>
   );
 }
