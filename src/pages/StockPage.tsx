@@ -187,7 +187,9 @@ export function StockPage({
       {error && (
         <div style={{ border: '1px solid var(--color-negative)', backgroundColor: 'rgba(255, 68, 68, 0.05)', padding: '16px', borderRadius: '4px', marginBottom: '16px' }}>
           <div style={{ color: 'var(--color-negative)', fontSize: '12px', marginBottom: '8px' }}>
-            [ERROR] {error}
+            [ERROR] {error.includes('API key required') && !isLoggedIn
+              ? 'Stock data temporarily unavailable. Please try again later or login with your own API key.'
+              : error}
           </div>
           {!error.includes('API key required') && (
             <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '12px' }}>
@@ -198,7 +200,7 @@ export function StockPage({
           )}
           <div style={{ display: 'flex', gap: '8px' }}>
             <Button onClick={() => fetchStock(symbol)}>retry</Button>
-            {error.includes('API key required') && (
+            {error.includes('API key required') && isLoggedIn && (
               <Button variant="secondary" onClick={onSettingsClick}>settings →</Button>
             )}
           </div>
