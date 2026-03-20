@@ -1,6 +1,6 @@
 // ============================================================
 // GuessHowMuch Web - useStock Hook
-// Manages stock data fetching and state
+// Manages stock data fetching with independent error states
 // ============================================================
 
 import { useState, useCallback } from 'react';
@@ -11,16 +11,28 @@ interface StockState {
   snapshot: StockSnapshot | null;
   news: NewsArticle[];
   predictions: Prediction[];
-  loading: boolean;
-  error: string | null;
+
+  // Independent loading states
+  snapshotLoading: boolean;
+  newsLoading: boolean;
+  predictionsLoading: boolean;
+
+  // Independent error states
+  snapshotError: string | null;
+  newsError: string | null;
+  predictionsError: string | null;
 }
 
 const initialState: StockState = {
   snapshot: null,
   news: [],
   predictions: [],
-  loading: false,
-  error: null,
+  snapshotLoading: false,
+  newsLoading: false,
+  predictionsLoading: false,
+  snapshotError: null,
+  newsError: null,
+  predictionsError: null,
 };
 
 // Deduplicate predictions by date, keep latest per day, sort newest first
@@ -42,28 +54,74 @@ export function useStock() {
   const [state, setState] = useState<StockState>(initialState);
 
   const fetchStock = useCallback(async (symbol: string) => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
+    // Reset all state and start all loaders
+    setState({
+      ...initialState,
+      snapshotLoading: true,
+      newsLoading: true,
+      predictionsLoading: true,
+    });
 
+    // Fire all three requests independently — failures are isolated
+    const [snapshotResult, newsResult, predictionsResult] = await Promise.allSettled([
+      api.getSnapshot(symbol),
+      api.getNews(symbol),
+      api.getPredictions(symbol),
+    ]);
+
+    setState(prev => ({
+      ...prev,
+
+      // Snapshot
+      snapshot: snapshotResult.status === 'fulfilled' ? snapshotResult.value : null,
+      snapshotLoading: false,
+      snapshotError: snapshotResult.status === 'rejected'
+        ? (snapshotResult.reason instanceof Error ? snapshotResult.reason.message : 'Failed to load stock data')
+        : null,
+
+      // News
+      news: newsResult.status === 'fulfilled' ? newsResult.value : [],
+      newsLoading: false,
+      newsError: newsResult.status === 'rejected'
+        ? (newsResult.reason instanceof Error ? newsResult.reason.message : 'Failed to load news')
+        : null,
+
+      // Predictions
+      predictions: predictionsResult.status === 'fulfilled'
+        ? deduplicatePredictions(predictionsResult.value)
+        : [],
+      predictionsLoading: false,
+      predictionsError: predictionsResult.status === 'rejected'
+        ? (predictionsResult.reason instanceof Error ? predictionsResult.reason.message : 'Failed to load predictions')
+        : null,
+    }));
+  }, []);
+
+  // Retry individual sections
+  const retrySnapshot = useCallback(async (symbol: string) => {
+    setState(prev => ({ ...prev, snapshotLoading: true, snapshotError: null }));
     try {
-      const [snapshot, news, rawPredictions] = await Promise.all([
-        api.getSnapshot(symbol),
-        api.getNews(symbol),
-        api.getPredictions(symbol),
-      ]);
-
-      setState({
-        snapshot,
-        news,
-        predictions: deduplicatePredictions(rawPredictions),
-        loading: false,
-        error: null,
-      });
-
+      const snapshot = await api.getSnapshot(symbol);
+      setState(prev => ({ ...prev, snapshot, snapshotLoading: false }));
     } catch (err) {
       setState(prev => ({
         ...prev,
-        loading: false,
-        error: err instanceof Error ? err.message : 'Failed to fetch stock data',
+        snapshotLoading: false,
+        snapshotError: err instanceof Error ? err.message : 'Failed to load stock data',
+      }));
+    }
+  }, []);
+
+  const retryNews = useCallback(async (symbol: string) => {
+    setState(prev => ({ ...prev, newsLoading: true, newsError: null }));
+    try {
+      const news = await api.getNews(symbol);
+      setState(prev => ({ ...prev, news, newsLoading: false }));
+    } catch (err) {
+      setState(prev => ({
+        ...prev,
+        newsLoading: false,
+        newsError: err instanceof Error ? err.message : 'Failed to load news',
       }));
     }
   }, []);
@@ -85,9 +143,19 @@ export function useStock() {
     setState(initialState);
   }, []);
 
+  // Derived: overall loading (any section still loading)
+  const loading = state.snapshotLoading || state.newsLoading || state.predictionsLoading;
+
+  // Legacy error: snapshotError (StockPage uses this for the main error banner)
+  const error = state.snapshotError;
+
   return {
     ...state,
+    loading,
+    error,
     fetchStock,
+    retrySnapshot,
+    retryNews,
     generatePrediction,
     reset,
   };
