@@ -101,6 +101,7 @@ src/
 │   └── Skeleton.tsx          # Loading placeholders
 ├── hooks/
 │   ├── useAuth.ts            # Authentication state management
+│   ├── useHealthCheck.ts    # Backend health polling hook
 │   ├── useStock.ts           # Stock data fetching hook
 │   └── useDots.ts            # Animated loading dots hook
 ├── pages/
@@ -164,7 +165,8 @@ aws cloudfront create-invalidation \
 - [x] AWS deployment (S3 + CloudFront + stockguesser.com)
 - [x] Production API URL configuration
 - [x] CI/CD pipeline (GitHub Actions)
-- [ ] Prediction system using user's own API keys (BYOK)
+- [x] Prediction system using user's own API keys (BYOK)
+- [x] Backend health indicator (live/offline/degraded status in header)
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design

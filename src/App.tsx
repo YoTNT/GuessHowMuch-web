@@ -9,6 +9,7 @@ import { StockPage } from './pages/StockPage';
 import { useAuth } from './hooks/useAuth';
 import { api } from './api/client';
 import { SettingsPage } from './pages/SettingsPage';
+import { useHealthCheck } from './hooks/useHealthCheck';
 
 type Page = 'home' | 'stock' | 'settings';
 
@@ -27,6 +28,7 @@ const ANNOUNCEMENTS: Announcement[] = [
 
 export default function App() {
   const { user, loading, isLoggedIn, login, register, logout, updateUser } = useAuth();
+  const { status: backendStatus } = useHealthCheck();
   const [page, setPage] = useState<Page>('home');
   const [symbol, setSymbol] = useState<string>('');
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -121,6 +123,7 @@ export default function App() {
     <div style={{ minHeight: '100vh', backgroundColor: 'var(--color-bg)' }}>
       <Header
         user={user}
+        backendStatus={backendStatus}
         onLoginClick={handleLoginClick}
         onLogout={handleLogout}
         onSettingsClick={handleSettingsClick}
