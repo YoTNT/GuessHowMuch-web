@@ -29,7 +29,15 @@ export function StockPage({
   onSettingsClick,
   user,
 }: StockPageProps) {
-  const { snapshot, news, predictions, loading, error, fetchStock, generatePrediction } = useStock();
+  const {
+    snapshot, news, predictions,
+    snapshotLoading, newsLoading,
+    snapshotError, newsError,
+    retrySnapshot, retryNews,
+    generatePrediction,
+    fetchStock,
+  } = useStock();
+
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [generateSuccess, setGenerateSuccess] = useState(false);
@@ -77,6 +85,29 @@ export function StockPage({
       setGenerating(false);
     }
   };
+
+  // ── Inline error block ────────────────────────────────────
+  const renderError = (message: string, onRetry: () => void) => (
+    <div style={{
+      border: '1px solid var(--color-negative)',
+      backgroundColor: 'rgba(255, 68, 68, 0.05)',
+      padding: '12px',
+      borderRadius: '4px',
+      marginBottom: '12px',
+    }}>
+      <div style={{ color: 'var(--color-negative)', fontSize: '12px', marginBottom: '8px' }}>
+        {message.includes('rate limit')
+          ? '[ERROR] rate limit reached — please wait a moment'
+          : `[ERROR] ${message}`}
+      </div>
+      {message.includes('rate limit') && (
+        <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px' }}>
+          Alpha Vantage free tier allows 5 requests per minute.
+        </div>
+      )}
+      <Button onClick={onRetry}>retry</Button>
+    </div>
+  );
 
   // ── Prediction panel ──────────────────────────────────────
   const renderPredictionPanel = () => {
@@ -129,7 +160,7 @@ export function StockPage({
             [OK] Prediction generated successfully
           </div>
         )}
-        {!loading && predictions.length === 0 && (
+        {!snapshotLoading && predictions.length === 0 && (
           <div style={{ color: 'var(--color-muted)', fontSize: '12px', marginBottom: '12px' }}>
             no predictions yet — click generate
           </div>
@@ -170,8 +201,8 @@ export function StockPage({
         </div>
       )}
 
-      {/* Alpha Vantage key missing banner — only show if no error */}
-      {isLoggedIn && !hasAlphaVantageKey && !error && (
+      {/* Alpha Vantage key missing banner */}
+      {isLoggedIn && !hasAlphaVantageKey && !snapshotError && (
         <div style={{ border: '1px solid var(--color-border)', backgroundColor: 'rgba(255, 255, 255, 0.02)', padding: '10px 12px', borderRadius: '4px', marginBottom: '16px', fontSize: '11px', color: 'var(--color-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>[INFO] using shared API quota — add your Alpha Vantage key in Settings for better rate limits</span>
           <button
@@ -183,68 +214,65 @@ export function StockPage({
         </div>
       )}
 
-      {/* Fetch error */}
-      {error && (
-        <div style={{ border: '1px solid var(--color-negative)', backgroundColor: 'rgba(255, 68, 68, 0.05)', padding: '16px', borderRadius: '4px', marginBottom: '16px' }}>
-          <div style={{ color: 'var(--color-negative)', fontSize: '12px', marginBottom: '8px' }}>
-            [ERROR] {error.includes('API key required') && !isLoggedIn
-              ? 'Stock data temporarily unavailable. Please try again later or login with your own API key.'
-              : error}
-          </div>
-          {!error.includes('API key required') && (
-            <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '12px' }}>
-              {error.includes('rate limit')
-                ? 'Alpha Vantage free tier allows 5 requests per minute. Please wait a moment and try again.'
-                : 'Something went wrong. Please try again.'}
-            </div>
-          )}
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <Button onClick={() => fetchStock(symbol)}>retry</Button>
-            {error.includes('API key required') && isLoggedIn && (
-              <Button variant="secondary" onClick={onSettingsClick}>settings →</Button>
-            )}
-          </div>
-        </div>
-      )}
-
       {/* Content */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-        {/* Left — only show if no error */}
-        {!error && (
-          <div>
-            <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px' }}>// quote</div>
-            {loading ? <QuoteCardSkeleton /> : snapshot && <QuoteCard quote={snapshot.quote} />}
 
-            <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>// indicators</div>
-            {loading ? <IndicatorsCardSkeleton /> : snapshot?.indicators && <IndicatorsCard indicators={snapshot.indicators} />}
+        {/* Left column — quote, indicators, news */}
+        <div>
+          {/* Quote */}
+          <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px' }}>// quote</div>
+          {snapshotLoading
+            ? <QuoteCardSkeleton />
+            : snapshotError
+              ? renderError(
+                  snapshotError.includes('API key required') && !isLoggedIn
+                    ? 'Stock data temporarily unavailable. Login with your own API key for better access.'
+                    : snapshotError,
+                  () => retrySnapshot(symbol)
+                )
+              : snapshot && <QuoteCard quote={snapshot.quote} />
+          }
 
-            <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>// news sentiment</div>
-            {loading ? (
-              <NewsCardSkeleton />
-            ) : isLoggedIn && !hasNewsApiKey ? (
-              <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '16px', fontSize: '11px' }}>
-                <div style={{ color: 'var(--color-muted)', marginBottom: '10px' }}>
-                  [INFO] add your NewsAPI key to unlock news sentiment analysis
-                </div>
-                <button
-                  onClick={onSettingsClick}
-                  style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-accent)', fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '0' }}
-                >
-                  settings →
-                </button>
+          {/* Indicators */}
+          {!snapshotError && (
+            <>
+              <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>// indicators</div>
+              {snapshotLoading
+                ? <IndicatorsCardSkeleton />
+                : snapshot?.indicators && <IndicatorsCard indicators={snapshot.indicators} />
+              }
+            </>
+          )}
+
+          {/* News */}
+          <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>// news sentiment</div>
+          {newsLoading ? (
+            <NewsCardSkeleton />
+          ) : newsError ? (
+            renderError(newsError, () => retryNews(symbol))
+          ) : isLoggedIn && !hasNewsApiKey ? (
+            <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '16px', fontSize: '11px' }}>
+              <div style={{ color: 'var(--color-muted)', marginBottom: '10px' }}>
+                [INFO] add your NewsAPI key to unlock news sentiment analysis
               </div>
-            ) : (
-              <NewsCard articles={news} />
-            )}
-          </div>
-        )}
+              <button
+                onClick={onSettingsClick}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-accent)', fontSize: '11px', fontFamily: 'var(--font-mono)', padding: '0' }}
+              >
+                settings →
+              </button>
+            </div>
+          ) : (
+            <NewsCard articles={news} />
+          )}
+        </div>
 
-        {/* Right — always show prediction panel */}
+        {/* Right column — predictions */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>// predictions</span>
             {isLoggedIn && inWatchlist && hasAnthropicKey && (
-              <Button onClick={handleGeneratePrediction} disabled={loading} loading={generating} loadingText="generating">
+              <Button onClick={handleGeneratePrediction} disabled={snapshotLoading} loading={generating} loadingText="generating">
                 + generate
               </Button>
             )}

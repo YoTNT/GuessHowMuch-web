@@ -167,6 +167,7 @@ aws cloudfront create-invalidation \
 - [x] CI/CD pipeline (GitHub Actions)
 - [x] Prediction system using user's own API keys (BYOK)
 - [x] Backend health indicator (live/offline/degraded status in header)
+- [x] Graceful error handling for all API failures
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design
