@@ -69,8 +69,7 @@ export function Header({ user, backendStatus, onLoginClick, onLogout, onSettings
             height: '6px',
             borderRadius: '50%',
             backgroundColor: cfg.color,
-            // Pulse animation when checking
-            animation: backendStatus === 'checking' ? 'pulse 1.5s ease-in-out infinite' : 'none',
+            animation: 'pulse 1.5s ease-in-out infinite',
           }} />
           <span style={{ color: cfg.color, fontSize: '11px' }}>
             {cfg.label}
