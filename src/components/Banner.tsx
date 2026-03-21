@@ -1,15 +1,20 @@
 import { useState } from 'react';
 
 export type BannerType = 'INFO' | 'WARNING' | 'NEW' | 'DONATION';
+export type AnnouncementPriority = 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT';
 
 export interface Announcement {
   id: string;
   type: BannerType;
   message: string;
+  priority: AnnouncementPriority;
+  isActive: boolean;
   link?: {
     text: string;
     url: string;
   };
+  createdAt: string;
+  expiresAt?: number;
 }
 
 interface BannerProps {
@@ -29,8 +34,8 @@ export function Banner({ announcements }: BannerProps) {
   if (visible.length === 0) return null;
 
   return (
-    <div>
-      {visible.map(announcement => {
+    <>
+      {visible.map((announcement: Announcement) => {
         const cfg = typeConfig[announcement.type];
         return (
           <div
@@ -49,7 +54,6 @@ export function Banner({ announcements }: BannerProps) {
               <span style={{ color: cfg.color, fontWeight: 'bold' }}>{cfg.prefix}</span>
               <span style={{ color: 'var(--color-text)' }}>{announcement.message}</span>
               {announcement.link && (
-                
                 <a
                   href={announcement.link.url}
                   target="_blank"
@@ -78,6 +82,6 @@ export function Banner({ announcements }: BannerProps) {
           </div>
         );
       })}
-    </div>
+    </>
   );
 }

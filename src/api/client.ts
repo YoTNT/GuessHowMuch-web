@@ -5,6 +5,7 @@ import type {
   NewsArticle,
   Prediction,
 } from '../types';
+import type { Announcement } from '../components/Banner';
 
 const BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
@@ -135,4 +136,8 @@ export const api = {
 
   getPredictions: (symbol: string) =>
     request<Prediction[]>(`/predictions/${symbol}`),
+
+  // ── Announcements ────────────────────────────────────────
+  getAnnouncements: () =>
+    request<Announcement[]>('/announcements'),
 };
