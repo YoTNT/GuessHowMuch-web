@@ -13,7 +13,7 @@ The frontend of [GuessHowMuch](https://github.com/YoTNT/GuessHowMuch) — an AI-
 - **Error handling** — Friendly error messages with retry support
 - **Quick picks** — One-click access to popular stocks
 - **Watchlist UX** — Browse any stock, add to watchlist to generate predictions
-- **Announcement banner** — System announcements with INFO/WARNING/NEW/DONATION types
+- **Announcement banner** — Backend-driven system announcements with priority levels (LOW/NORMAL/HIGH/URGENT) and optional TTL
 - **Unified button component** — Consistent hover, loading, and disabled states
 - **User authentication** — JWT login/register modal with remember me option
 - **API key management** — Per-user encrypted API keys (BYOK), masked display
@@ -168,6 +168,7 @@ aws cloudfront create-invalidation \
 - [x] Prediction system using user's own API keys (BYOK)
 - [x] Backend health indicator (live/offline/degraded status in header)
 - [x] Graceful error handling for all API failures
+- [x] Backend-driven announcement system (replaces hardcoded announcements)
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design

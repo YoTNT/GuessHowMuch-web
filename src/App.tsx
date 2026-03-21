@@ -1,34 +1,29 @@
-// GuessHowMuch Frontend v1.0.0
 import { useState } from 'react';
 import { Header } from './components/Header';
 import { Banner } from './components/Banner';
 import { AuthModal } from './components/AuthModal';
-import type { Announcement } from './components/Banner';
 import { HomePage } from './pages/HomePage';
 import { StockPage } from './pages/StockPage';
 import { useAuth } from './hooks/useAuth';
 import { api } from './api/client';
 import { SettingsPage } from './pages/SettingsPage';
 import { useHealthCheck } from './hooks/useHealthCheck';
+import type { Announcement } from './components/Banner';
+import { useEffect } from 'react';
 
 type Page = 'home' | 'stock' | 'settings';
-
-const ANNOUNCEMENTS: Announcement[] = [
-  {
-    id: '1',
-    type: 'NEW',
-    message: 'GuessHowMuch is now live! AI-powered stock predictions using Claude + FinBERT.',
-  },
-  {
-    id: '2',
-    type: 'INFO',
-    message: 'Login and add your API keys to unlock AI predictions.',
-  },
-];
 
 export default function App() {
   const { user, loading, isLoggedIn, login, register, logout, updateUser } = useAuth();
   const { status: backendStatus } = useHealthCheck();
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+
+  useEffect(() => {
+    api.getAnnouncements()
+      .then(setAnnouncements)
+      .catch(() => {}); // Silently fail — announcements are non-critical
+  }, []);
+
   const [page, setPage] = useState<Page>('home');
   const [symbol, setSymbol] = useState<string>('');
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -128,7 +123,7 @@ export default function App() {
         onLogout={handleLogout}
         onSettingsClick={handleSettingsClick}
       />
-      <Banner announcements={ANNOUNCEMENTS} />
+      <Banner announcements={announcements} />
 
       <main style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 24px' }}>
         {page === 'home' && (
