@@ -7,6 +7,7 @@ import { IndicatorsCard } from '../components/IndicatorsCard';
 import { QuoteCardSkeleton, IndicatorsCardSkeleton, NewsCardSkeleton } from '../components/Skeleton';
 import { Button } from '../components/Button';
 import type { UserProfile } from '../api/client';
+import { isDemoSymbol } from '../utils/demo';
 
 interface StockPageProps {
   symbol: string;
@@ -44,6 +45,8 @@ export function StockPage({
   const [addingToWatchlist, setAddingToWatchlist] = useState(false);
   const [watchlistError, setWatchlistError] = useState<string | null>(null);
   const [inWatchlist, setInWatchlist] = useState(isInWatchlist);
+
+  const isDemo = isDemoSymbol(symbol);
 
   useEffect(() => {
     fetchStock(symbol);
@@ -111,6 +114,44 @@ export function StockPage({
 
   // ── Prediction panel ──────────────────────────────────────
   const renderPredictionPanel = () => {
+    // Demo symbols — all users can generate predictions using system keys
+    if (isDemo) {
+      return (
+        <>
+          {generateError && (
+            <div style={{ border: '1px solid var(--color-negative)', backgroundColor: 'rgba(255, 68, 68, 0.05)', padding: '10px 12px', borderRadius: '4px', marginBottom: '12px', fontSize: '12px', color: 'var(--color-negative)' }}>
+              [ERROR] {generateError}
+            </div>
+          )}
+          {generateSuccess && (
+            <div style={{ border: '1px solid var(--color-positive)', backgroundColor: 'rgba(0, 255, 136, 0.05)', padding: '10px 12px', borderRadius: '4px', marginBottom: '12px', fontSize: '12px', color: 'var(--color-positive)' }}>
+              [OK] Prediction generated successfully
+            </div>
+          )}
+          {!snapshotLoading && predictions.length === 0 && (
+            <div style={{
+              border: '1px solid var(--color-border)',
+              borderRadius: '4px',
+              padding: '16px',
+              fontSize: '12px',
+              marginBottom: '12px',
+            }}>
+              <div style={{ color: 'var(--color-muted)', marginBottom: '8px' }}>
+                # free demo — AI prediction for {symbol} is available at no cost
+              </div>
+              <div style={{ color: 'var(--color-muted)', fontSize: '11px' }}>
+                click generate to see tomorrow's price prediction
+              </div>
+            </div>
+          )}
+          {predictions.map(prediction => (
+            <PredictionCard key={prediction.id} prediction={prediction} />
+          ))}
+        </>
+      );
+    }
+
+    // Non-demo symbols — original BYOK logic
     if (!isLoggedIn) {
       return (
         <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '16px', fontSize: '12px' }}>
@@ -184,13 +225,16 @@ export function StockPage({
         <span style={{ color: 'var(--color-accent)', fontSize: '24px', fontWeight: 'bold' }}>
           $ analyze {symbol}
         </span>
-        {isLoggedIn && !inWatchlist && (
+        {isLoggedIn && !inWatchlist && !isDemo && (
           <Button variant="primary" onClick={handleAddToWatchlist} loading={addingToWatchlist} loadingText="adding">
             + add to watchlist
           </Button>
         )}
         {isLoggedIn && inWatchlist && (
           <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>[in watchlist]</span>
+        )}
+        {isDemo && (
+          <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>[demo]</span>
         )}
       </div>
 
@@ -201,8 +245,8 @@ export function StockPage({
         </div>
       )}
 
-      {/* Alpha Vantage key missing banner */}
-      {isLoggedIn && !hasAlphaVantageKey && !snapshotError && (
+      {/* Alpha Vantage key missing banner — not shown for demo symbols */}
+      {isLoggedIn && !hasAlphaVantageKey && !snapshotError && !isDemo && (
         <div style={{ border: '1px solid var(--color-border)', backgroundColor: 'rgba(255, 255, 255, 0.02)', padding: '10px 12px', borderRadius: '4px', marginBottom: '16px', fontSize: '11px', color: 'var(--color-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>[INFO] using shared API quota — add your Alpha Vantage key in Settings for better rate limits</span>
           <button
@@ -244,13 +288,13 @@ export function StockPage({
             </>
           )}
 
-          {/* News */}
+          {/* News — not shown for demo symbols without NewsAPI key */}
           <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>// news sentiment</div>
           {newsLoading ? (
             <NewsCardSkeleton />
           ) : newsError ? (
             renderError(newsError, () => retryNews(symbol))
-          ) : isLoggedIn && !hasNewsApiKey ? (
+          ) : isLoggedIn && !hasNewsApiKey && !isDemo ? (
             <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '16px', fontSize: '11px' }}>
               <div style={{ color: 'var(--color-muted)', marginBottom: '10px' }}>
                 [INFO] add your NewsAPI key to unlock news sentiment analysis
@@ -271,7 +315,14 @@ export function StockPage({
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
             <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>// predictions</span>
-            {isLoggedIn && inWatchlist && hasAnthropicKey && (
+            {/* Demo symbols — always show generate button */}
+            {isDemo && (
+              <Button onClick={handleGeneratePrediction} disabled={snapshotLoading} loading={generating} loadingText="generating">
+                + generate
+              </Button>
+            )}
+            {/* Non-demo symbols — only show for logged in users with watchlist + Anthropic key */}
+            {!isDemo && isLoggedIn && inWatchlist && hasAnthropicKey && (
               <Button onClick={handleGeneratePrediction} disabled={snapshotLoading} loading={generating} loadingText="generating">
                 + generate
               </Button>

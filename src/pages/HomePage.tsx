@@ -1,5 +1,6 @@
 import { SearchBar } from '../components/SearchBar';
 import { Button } from '../components/Button';
+import { DEMO_SYMBOLS } from '../utils/demo';
 
 interface HomePageProps {
   onSearch: (symbol: string) => void;
@@ -27,11 +28,14 @@ export function HomePage({ onSearch, loading = false }: HomePageProps) {
 
       {/* Quick picks */}
       <div>
-        <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '12px' }}>
+        <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '4px' }}>
           // quick picks
         </div>
+        <div style={{ color: 'var(--color-muted)', fontSize: '10px', marginBottom: '12px' }}>
+          # free demo — full access including AI predictions, no login required
+        </div>
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {['AAPL', 'NVDA', 'TSLA', 'HOOD', 'MSFT', 'GOOGL'].map(symbol => (
+          {DEMO_SYMBOLS.map(symbol => (
             <Button
               key={symbol}
               variant="secondary"
