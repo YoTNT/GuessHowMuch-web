@@ -17,6 +17,8 @@ The frontend of [GuessHowMuch](https://github.com/YoTNT/GuessHowMuch) — an AI-
 - **Unified button component** — Consistent hover, loading, and disabled states
 - **User authentication** — JWT login/register modal with remember me option
 - **API key management** — Per-user encrypted API keys (BYOK), masked display
+- **Shell layout** — collapsible sidebar with watchlist, consistent header across all pages
+- **Sidebar** — expandable/collapsible navigation with watchlist, settings, login/logout
 - **Demo mode** — Mega 7 stocks freely accessible without login, including AI predictions
 
 ---
@@ -170,6 +172,8 @@ aws cloudfront create-invalidation \
 - [x] Backend health indicator (live/offline/degraded status in header)
 - [x] Graceful error handling for all API failures
 - [x] Backend-driven announcement system (replaces hardcoded announcements)
+- [x] Shell layout refactor (sidebar + modular header)
+- [x] Sidebar with collapsible watchlist, settings, login/logout
 - [x] Demo mode (Mega 7 symbols with free AI predictions for anonymous users)
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
