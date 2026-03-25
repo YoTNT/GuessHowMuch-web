@@ -35,19 +35,23 @@ const initialState: StockState = {
   predictionsError: null,
 };
 
-// Deduplicate predictions by date, keep latest per day, sort newest first
-function deduplicatePredictions(predictions: Prediction[]): Prediction[] {
-  const byDate = predictions.reduce((acc, pred) => {
-    const existing = acc[pred.predictedFor];
-    if (!existing || pred.createdAt > existing.createdAt) {
-      acc[pred.predictedFor] = pred;
-    }
-    return acc;
-  }, {} as Record<string, Prediction>);
+// Get next trading day in ET timezone as YYYY-MM-DD string
+function getNextTradingDayET(): string {
+  const now = new Date();
+  const etNow = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
 
-  return Object.values(byDate).sort((a, b) =>
-    b.predictedFor.localeCompare(a.predictedFor)
-  );
+  const next = new Date(etNow);
+  next.setDate(next.getDate() + 1);
+  if (next.getDay() === 6) next.setDate(next.getDate() + 2); // Saturday → Monday
+  if (next.getDay() === 0) next.setDate(next.getDate() + 1); // Sunday → Monday
+
+  return next.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+}
+
+// Filter predictions to only show the one for the next trading day
+function filterTodayPrediction(predictions: Prediction[]): Prediction[] {
+  const nextTradingDay = getNextTradingDayET();
+  return predictions.filter(p => p.predictedFor === nextTradingDay);
 }
 
 export function useStock() {
@@ -86,9 +90,9 @@ export function useStock() {
         ? (newsResult.reason instanceof Error ? newsResult.reason.message : 'Failed to load news')
         : null,
 
-      // Predictions
+      // Predictions — only show next trading day's prediction
       predictions: predictionsResult.status === 'fulfilled'
-        ? deduplicatePredictions(predictionsResult.value)
+        ? filterTodayPrediction(predictionsResult.value)
         : [],
       predictionsLoading: false,
       predictionsError: predictionsResult.status === 'rejected'
@@ -131,7 +135,8 @@ export function useStock() {
       const prediction = await api.generatePrediction(symbol);
       setState(prev => ({
         ...prev,
-        predictions: deduplicatePredictions([prediction, ...prev.predictions]),
+        // Replace predictions with the new one (only show next trading day)
+        predictions: filterTodayPrediction([prediction, ...prev.predictions]),
       }));
       return prediction;
     } catch (err) {
