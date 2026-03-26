@@ -20,6 +20,8 @@ The frontend of [GuessHowMuch](https://github.com/YoTNT/GuessHowMuch) — an AI-
 - **Shell layout** — collapsible sidebar with watchlist, consistent header across all pages
 - **Sidebar** — expandable/collapsible navigation with watchlist, settings, login/logout
 - **Demo mode** — Mega 7 stocks freely accessible without login, including AI predictions
+- **Stock overview** — Company info (name, exchange, sector, industry, description) displayed on stock page
+- **Logo navigation** — Click logo to return to home page
 
 ---
 
@@ -101,6 +103,7 @@ src/
 │   ├── PredictionCard.tsx    # AI prediction display
 │   ├── NewsCard.tsx          # News sentiment display
 │   ├── SentimentBadge.tsx    # Sentiment label
+│   ├── StockOverview.tsx     # Company overview display
 │   └── Skeleton.tsx          # Loading placeholders
 ├── hooks/
 │   ├── useAuth.ts            # Authentication state management
@@ -175,6 +178,10 @@ aws cloudfront create-invalidation \
 - [x] Shell layout refactor (sidebar + modular header)
 - [x] Sidebar with collapsible watchlist, settings, login/logout
 - [x] Demo mode (Mega 7 symbols with free AI predictions for anonymous users)
+- [x] Stock overview info (company name, exchange, sector, industry, description)
+- [x] Header logo click navigation (return to home)
+- [x] Prediction deduplication (only show latest prediction per trading day)
+- [x] Prediction time display improvement (human-readable format)
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design

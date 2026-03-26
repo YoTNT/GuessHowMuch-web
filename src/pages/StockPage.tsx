@@ -5,6 +5,7 @@ import { PredictionCard } from '../components/PredictionCard';
 import { NewsCard } from '../components/NewsCard';
 import { IndicatorsCard } from '../components/IndicatorsCard';
 import { QuoteCardSkeleton, IndicatorsCardSkeleton, NewsCardSkeleton } from '../components/Skeleton';
+import { StockOverviewCard } from '../components/StockOverview';
 import { Button } from '../components/Button';
 import type { UserProfile } from '../api/client';
 import { isDemoSymbol } from '../utils/demo';
@@ -31,7 +32,7 @@ export function StockPage({
   user,
 }: StockPageProps) {
   const {
-    snapshot, news, predictions,
+    snapshot, news, predictions, overview,
     snapshotLoading, newsLoading,
     snapshotError, newsError,
     retrySnapshot, retryNews,
@@ -216,7 +217,7 @@ export function StockPage({
   return (
     <div>
       {/* Back */}
-      <div style={{ marginBottom: '24px' }}>
+      <div style={{ marginBottom: '24px', marginTop: '24px' }}>
         <Button variant="secondary" onClick={onBack}>&lt; back</Button>
       </div>
 
@@ -259,12 +260,14 @@ export function StockPage({
       )}
 
       {/* Content */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' }}>
 
         {/* Left column — quote, indicators, news */}
         <div>
           {/* Quote */}
-          <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px' }}>// quote</div>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', height: '32px', }}>
+            <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>// quote</span>
+          </div>
           {snapshotLoading
             ? <QuoteCardSkeleton />
             : snapshotError
@@ -285,6 +288,16 @@ export function StockPage({
                 ? <IndicatorsCardSkeleton />
                 : snapshot?.indicators && <IndicatorsCard indicators={snapshot.indicators} />
               }
+            </>
+          )}
+
+          {/* About */}
+          {overview && (
+            <>
+              <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>
+                // about {overview.name}
+              </div>
+              <StockOverviewCard overview={overview} />
             </>
           )}
 
@@ -313,7 +326,7 @@ export function StockPage({
 
         {/* Right column — predictions */}
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', height: '32px', }}>
             <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>// predictions</span>
             {/* Demo symbols — always show generate button */}
             {isDemo && (

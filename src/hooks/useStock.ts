@@ -5,32 +5,38 @@
 
 import { useState, useCallback } from 'react';
 import { api } from '../api/client';
-import type { StockSnapshot, NewsArticle, Prediction } from '../types';
+import type { StockSnapshot, NewsArticle, Prediction, StockOverview } from '../types';
 
 interface StockState {
   snapshot: StockSnapshot | null;
+  overview: StockOverview | null;
   news: NewsArticle[];
   predictions: Prediction[];
 
   // Independent loading states
   snapshotLoading: boolean;
+  overviewLoading: boolean;
   newsLoading: boolean;
   predictionsLoading: boolean;
 
   // Independent error states
   snapshotError: string | null;
+  overviewError: string | null;
   newsError: string | null;
   predictionsError: string | null;
 }
 
 const initialState: StockState = {
   snapshot: null,
+  overview: null,
   news: [],
   predictions: [],
   snapshotLoading: false,
+  overviewLoading: false,
   newsLoading: false,
   predictionsLoading: false,
   snapshotError: null,
+  overviewError: null,
   newsError: null,
   predictionsError: null,
 };
@@ -51,7 +57,10 @@ function getNextTradingDayET(): string {
 // Filter predictions to only show the one for the next trading day
 function filterTodayPrediction(predictions: Prediction[]): Prediction[] {
   const nextTradingDay = getNextTradingDayET();
-  return predictions.filter(p => p.predictedFor === nextTradingDay);
+  const filtered = predictions.filter(p => p.predictedFor === nextTradingDay);
+  if (filtered.length === 0) return [];
+  // Only keep the latest prediction
+  return [filtered.sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]];
 }
 
 export function useStock() {
@@ -62,15 +71,17 @@ export function useStock() {
     setState({
       ...initialState,
       snapshotLoading: true,
+      overviewLoading: true,
       newsLoading: true,
       predictionsLoading: true,
     });
 
-    // Fire all three requests independently — failures are isolated
-    const [snapshotResult, newsResult, predictionsResult] = await Promise.allSettled([
+    // Fire all four requests independently — failures are isolated
+    const [snapshotResult, newsResult, predictionsResult, overviewResult] = await Promise.allSettled([
       api.getSnapshot(symbol),
       api.getNews(symbol),
       api.getPredictions(symbol),
+      api.getOverview(symbol),
     ]);
 
     setState(prev => ({
@@ -97,6 +108,13 @@ export function useStock() {
       predictionsLoading: false,
       predictionsError: predictionsResult.status === 'rejected'
         ? (predictionsResult.reason instanceof Error ? predictionsResult.reason.message : 'Failed to load predictions')
+        : null,
+
+      // Overview
+      overview: overviewResult.status === 'fulfilled' ? overviewResult.value : null,
+      overviewLoading: false,
+      overviewError: overviewResult.status === 'rejected'
+        ? (overviewResult.reason instanceof Error ? overviewResult.reason.message : 'Failed to load overview')
         : null,
     }));
   }, []);
@@ -135,7 +153,6 @@ export function useStock() {
       const prediction = await api.generatePrediction(symbol);
       setState(prev => ({
         ...prev,
-        // Replace predictions with the new one (only show next trading day)
         predictions: filterTodayPrediction([prediction, ...prev.predictions]),
       }));
       return prediction;
@@ -149,7 +166,7 @@ export function useStock() {
   }, []);
 
   // Derived: overall loading (any section still loading)
-  const loading = state.snapshotLoading || state.newsLoading || state.predictionsLoading;
+  const loading = state.snapshotLoading || state.overviewLoading || state.newsLoading || state.predictionsLoading;
 
   // Legacy error: snapshotError (StockPage uses this for the main error banner)
   const error = state.snapshotError;

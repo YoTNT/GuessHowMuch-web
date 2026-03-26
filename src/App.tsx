@@ -145,6 +145,7 @@ export default function App() {
             backendStatus={backendStatus}
             isLoggedIn={isLoggedIn}
             onLoginClick={handleLoginClick}
+            onLogoClick={handleBack}
           />
 
           <Banner announcements={announcements} />

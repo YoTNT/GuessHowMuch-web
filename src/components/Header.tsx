@@ -4,6 +4,7 @@ interface HeaderProps {
   backendStatus: BackendStatus;
   isLoggedIn: boolean;
   onLoginClick: () => void;
+  onLogoClick: () => void;
 }
 
 const statusConfig: Record<BackendStatus, { color: string; label: string; tooltip: string }> = {
@@ -29,7 +30,7 @@ const statusConfig: Record<BackendStatus, { color: string; label: string; toolti
   },
 };
 
-export function Header({ backendStatus, isLoggedIn, onLoginClick }: HeaderProps) {
+export function Header({ backendStatus, isLoggedIn, onLoginClick, onLogoClick }: HeaderProps) {
   const cfg = statusConfig[backendStatus];
 
   return (
@@ -44,7 +45,15 @@ export function Header({ backendStatus, isLoggedIn, onLoginClick }: HeaderProps)
       flexShrink: 0,
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <span style={{ color: 'var(--color-accent)', fontWeight: 'bold', fontSize: '14px' }}>
+        <span
+          onClick={onLogoClick}
+          style={{
+            color: 'var(--color-accent)',
+            fontWeight: 'bold',
+            fontSize: '14px',
+            cursor: 'pointer',
+          }}
+        >
           $ GuessHowMuch
         </span>
         <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>

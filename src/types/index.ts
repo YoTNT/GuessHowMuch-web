@@ -92,3 +92,15 @@ export interface Stock {
     data?: T;
     error?: string;
   }
+
+  export interface StockOverview {
+    symbol: string;
+    name: string;
+    exchange: string;
+    sector: string;
+    industry: string;
+    description: string;
+    country: string;
+    updatedAt: string;
+    expiresAt: number;
+  }
