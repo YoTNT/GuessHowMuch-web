@@ -4,6 +4,7 @@ import type {
   StockSnapshot,
   NewsArticle,
   Prediction,
+  StockOverview,
 } from '../types';
 import type { Announcement } from '../components/Banner';
 
@@ -129,6 +130,9 @@ export const api = {
 
   getNews: (symbol: string) =>
     request<NewsArticle[]>(`/stocks/${symbol}/news`),
+
+  getOverview: (symbol: string) =>
+    request<StockOverview>(`/stocks/${symbol}/overview`),
 
   // ── Predictions ─────────────────────────────────────────
   generatePrediction: (symbol: string) =>
