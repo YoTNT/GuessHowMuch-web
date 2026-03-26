@@ -45,7 +45,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
         }}
       >
         <span style={{ color: 'var(--color-muted)', fontSize: '12px' }}>
-          ai prediction — {prediction.predictedFor}
+          prediction for tomorrow · {new Date(prediction.predictedFor + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
         </span>
         {prediction.verified && (
           <span
@@ -121,7 +121,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
         }}
       >
         <span>base price: ${prediction.basePrice?.toFixed(2) ?? 'N/A'}</span>
-        <span>{new Date(prediction.createdAt).toLocaleString()}</span>
+        <span>generated today at {new Date(prediction.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
       </div>
     </div>
   );
