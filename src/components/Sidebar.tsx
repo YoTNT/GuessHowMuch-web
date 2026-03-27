@@ -51,12 +51,11 @@ export function Sidebar({
   );
 
   const LoginIcon = () => (
-    <div style={{
-      width: '16px',
-      height: '16px',
-      border: '1.5px solid var(--color-accent)',
-      borderRadius: '2px',
-    }} />
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M10 3H13a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H10" stroke="var(--color-accent)" strokeWidth="1.2" strokeLinecap="round"/>
+      <path d="M6 11l3-3-3-3" stroke="var(--color-accent)" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+      <line x1="3" y1="8" x2="9" y2="8" stroke="var(--color-accent)" strokeWidth="1.2" strokeLinecap="round"/>
+    </svg>
   );
 
   const iconBtn = (
