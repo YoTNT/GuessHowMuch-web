@@ -75,6 +75,8 @@ export interface Stock {
     predictedChangePercent: number;
     confidence: number;
     reasoning: string;
+    promptVersion?: string;
+    confidenceLevel?: 'high' | 'medium' | 'low';
     verified: boolean;
     actualPrice?: number;
     actualDirection?: PredictionDirection;

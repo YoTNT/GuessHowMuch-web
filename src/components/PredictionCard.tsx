@@ -23,6 +23,12 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
 
   const changeSign = prediction.predictedChangePercent >= 0 ? '+' : '';
 
+  const confidenceLevelConfig = prediction.confidenceLevel ? {
+    low:    { color: 'var(--color-negative)', prefix: '⚠', label: 'low confidence — insufficient historical data for this symbol' },
+    medium: { color: '#cc8800',               prefix: '~', label: 'medium confidence — limited historical accuracy data' },
+    high:   { color: 'var(--color-positive)', prefix: '✓', label: 'high confidence — based on strong historical accuracy' },
+  }[prediction.confidenceLevel] : null;
+
   return (
     <div
       style={{
@@ -93,6 +99,21 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
           </div>
         </div>
       </div>
+
+      {/* Confidence Level */}
+      {confidenceLevelConfig && (
+        <div style={{
+          fontSize: '11px',
+          color: confidenceLevelConfig.color,
+          marginBottom: '8px',
+          padding: '6px 10px',
+          border: `1px solid ${confidenceLevelConfig.color}`,
+          borderRadius: '2px',
+          opacity: 0.9,
+        }}>
+          {confidenceLevelConfig.prefix} {confidenceLevelConfig.label}
+        </div>
+      )}
 
       {/* Reasoning */}
       <div

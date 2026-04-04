@@ -22,6 +22,7 @@ The frontend of [GuessHowMuch](https://github.com/YoTNT/GuessHowMuch) — an AI-
 - **Demo mode** — Mega 7 stocks freely accessible without login, including AI predictions
 - **Stock overview** — Company info (name, exchange, sector, industry, description) displayed on stock page
 - **Logo navigation** — Click logo to return to home page
+- **Confidence level display** — Prediction card shows color-coded confidence warning (red/orange/green) based on historical accuracy
 
 ---
 
@@ -182,6 +183,7 @@ aws cloudfront create-invalidation \
 - [x] Header logo click navigation (return to home)
 - [x] Prediction deduplication (only show latest prediction per trading day)
 - [x] Prediction time display improvement (human-readable format)
+- [x] Confidence level display in prediction card (red=low, orange=medium, green=high)
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design
