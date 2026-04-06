@@ -62,6 +62,31 @@ function ApiKeyField({ label, description, unlocks, link, value, onChange, requi
 
 export function SettingsPage({ user, onBack, onUpdateUser }: SettingsPageProps) {
   const [keys, setKeys] = useState({ alphaVantage: "", anthropic: "", newsApi: "", huggingFace: "" });
+
+  // Guard — unverified users cannot access settings
+  if (!user.emailVerified) {
+    return (
+      <div style={{ paddingTop: '60px', maxWidth: '480px', margin: '0 auto', fontFamily: 'var(--font-mono)' }}>
+        <div style={{ marginBottom: '24px' }}>
+          <Button variant="secondary" onClick={onBack}>&lt; back</Button>
+        </div>
+        <div style={{
+          border: '1px solid #cc8800',
+          borderRadius: '4px',
+          padding: '32px',
+          backgroundColor: 'var(--color-surface)',
+        }}>
+          <div style={{ color: '#cc8800', fontSize: '16px', fontWeight: 'bold', marginBottom: '8px' }}>
+            ⚠ email verification required
+          </div>
+          <div style={{ color: 'var(--color-muted)', fontSize: '12px', lineHeight: '1.8' }}>
+            verify your email address to access settings and manage your API keys.
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   const [saving, setSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
