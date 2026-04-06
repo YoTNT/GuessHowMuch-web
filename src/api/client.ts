@@ -55,6 +55,7 @@ export interface AuthResponse {
 export interface UserProfile {
   userId: string;
   email: string;
+  emailVerified: boolean;
   apiKeys: {
     alphaVantage?: string;
     anthropic?: string;
@@ -144,4 +145,11 @@ export const api = {
   // ── Announcements ────────────────────────────────────────
   getAnnouncements: () =>
     request<Announcement[]>('/announcements'),
+
+  // ── Email verification ───────────────────────────────────
+  verifyEmail: (token: string) =>
+    request<{ user: UserProfile }>(`/auth/verify-email?token=${token}`),
+
+  resendVerification: () =>
+    request<void>('/auth/resend-verification', { method: 'POST' }),
 };

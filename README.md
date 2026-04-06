@@ -23,6 +23,8 @@ The frontend of [GuessHowMuch](https://github.com/YoTNT/GuessHowMuch) — an AI-
 - **Stock overview** — Company info (name, exchange, sector, industry, description) displayed on stock page
 - **Logo navigation** — Click logo to return to home page
 - **Confidence level display** — Prediction card shows color-coded confidence warning (red/orange/green) based on historical accuracy
+- **Email verification** — Token-based email verification flow with 24-hour expiry, resend support, and Homebrew-styled welcome page
+- **Permission-based UI** — Feature restrictions based on verification state, with orange visual cues guiding users to verify their email
 
 ---
 
@@ -115,6 +117,7 @@ src/
 │   ├── HomePage.tsx          # Search page
 │   └── StockPage.tsx         # Stock detail page
 │   └── SettingsPage.tsx      # User settings (API key management)
+│   └── VerifyEmailPage.tsx   # Email verification landing page
 ├── types/
 │   └── index.ts              # TypeScript type definitions
 ├── App.tsx
@@ -184,6 +187,9 @@ aws cloudfront create-invalidation \
 - [x] Prediction deduplication (only show latest prediction per trading day)
 - [x] Prediction time display improvement (human-readable format)
 - [x] Confidence level display in prediction card (red=low, orange=medium, green=high)
+- [x] Email verification flow (register → check email modal → verify page → feature unlock)
+- [x] Permission-based UI (unverified users see orange warnings, features locked with clear guidance)
+- [x] Homebrew-style custom tooltips in sidebar
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design
