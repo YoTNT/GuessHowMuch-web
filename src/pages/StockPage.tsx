@@ -48,6 +48,7 @@ export function StockPage({
   const [inWatchlist, setInWatchlist] = useState(isInWatchlist);
 
   const isDemo = isDemoSymbol(symbol);
+  const isEmailVerified = user?.emailVerified ?? false;
 
   useEffect(() => {
     fetchStock(symbol);
@@ -152,7 +153,7 @@ export function StockPage({
       );
     }
 
-    // Non-demo symbols — original BYOK logic
+    // Non-demo: not logged in
     if (!isLoggedIn) {
       return (
         <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '16px', fontSize: '12px' }}>
@@ -164,6 +165,29 @@ export function StockPage({
       );
     }
 
+    // Non-demo: logged in but email not verified
+    if (!isEmailVerified) {
+      return (
+        <div style={{
+          border: '1px solid #cc8800',
+          borderRadius: '4px',
+          padding: '16px',
+          fontSize: '12px',
+        }}>
+          <div style={{ color: '#cc8800', marginBottom: '4px' }}>
+            ⚠ email verification required
+          </div>
+          <div style={{ color: 'var(--color-muted)', fontSize: '11px', lineHeight: '1.8', marginBottom: '12px' }}>
+            verify your email to unlock watchlist, settings, and AI predictions.
+          </div>
+          <div style={{ color: 'var(--color-muted)', fontSize: '11px' }}>
+            check your inbox for the verification link, or click the ⚠ icon in the sidebar to resend.
+          </div>
+        </div>
+      );
+    }
+
+    // Non-demo: verified but no Anthropic key
     if (!hasAnthropicKey) {
       return (
         <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '16px', fontSize: '12px' }}>
@@ -177,6 +201,7 @@ export function StockPage({
       );
     }
 
+    // Non-demo: verified + has key but not in watchlist
     if (!inWatchlist) {
       return (
         <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '16px', fontSize: '12px' }}>
@@ -190,6 +215,7 @@ export function StockPage({
       );
     }
 
+    // Non-demo: fully unlocked
     return (
       <>
         {generateError && (
@@ -226,7 +252,7 @@ export function StockPage({
         <span style={{ color: 'var(--color-accent)', fontSize: '24px', fontWeight: 'bold' }}>
           $ analyze {symbol}
         </span>
-        {isLoggedIn && !inWatchlist && !isDemo && (
+        {isLoggedIn && isEmailVerified && !inWatchlist && !isDemo && (
           <Button variant="primary" onClick={handleAddToWatchlist} loading={addingToWatchlist} loadingText="adding">
             + add to watchlist
           </Button>
@@ -246,8 +272,8 @@ export function StockPage({
         </div>
       )}
 
-      {/* Alpha Vantage key missing banner — not shown for demo symbols */}
-      {isLoggedIn && !hasAlphaVantageKey && !snapshotError && !isDemo && (
+      {/* Alpha Vantage key missing banner */}
+      {isLoggedIn && isEmailVerified && !hasAlphaVantageKey && !snapshotError && !isDemo && (
         <div style={{ border: '1px solid var(--color-border)', backgroundColor: 'rgba(255, 255, 255, 0.02)', padding: '10px 12px', borderRadius: '4px', marginBottom: '16px', fontSize: '11px', color: 'var(--color-muted)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span>[INFO] using shared API quota — add your Alpha Vantage key in Settings for better rate limits</span>
           <button
@@ -262,10 +288,9 @@ export function StockPage({
       {/* Content */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'start' }}>
 
-        {/* Left column — quote, indicators, news */}
+        {/* Left column */}
         <div>
-          {/* Quote */}
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', height: '32px', }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '8px', height: '32px' }}>
             <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>// quote</span>
           </div>
           {snapshotLoading
@@ -280,7 +305,6 @@ export function StockPage({
               : snapshot && <QuoteCard quote={snapshot.quote} />
           }
 
-          {/* Indicators */}
           {!snapshotError && (
             <>
               <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>// indicators</div>
@@ -291,7 +315,6 @@ export function StockPage({
             </>
           )}
 
-          {/* About */}
           {overview && (
             <>
               <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>
@@ -301,13 +324,12 @@ export function StockPage({
             </>
           )}
 
-          {/* News — not shown for demo symbols without NewsAPI key */}
           <div style={{ color: 'var(--color-muted)', fontSize: '11px', marginBottom: '8px', marginTop: '16px' }}>// news sentiment</div>
           {newsLoading ? (
             <NewsCardSkeleton />
           ) : newsError ? (
             renderError(newsError, () => retryNews(symbol))
-          ) : isLoggedIn && !hasNewsApiKey && !isDemo ? (
+          ) : isLoggedIn && isEmailVerified && !hasNewsApiKey && !isDemo ? (
             <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '16px', fontSize: '11px' }}>
               <div style={{ color: 'var(--color-muted)', marginBottom: '10px' }}>
                 [INFO] add your NewsAPI key to unlock news sentiment analysis
@@ -326,16 +348,14 @@ export function StockPage({
 
         {/* Right column — predictions */}
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', height: '32px', }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', height: '32px' }}>
             <span style={{ color: 'var(--color-muted)', fontSize: '11px' }}>// predictions</span>
-            {/* Demo symbols — always show generate button */}
             {isDemo && (
               <Button onClick={handleGeneratePrediction} disabled={snapshotLoading} loading={generating} loadingText="generating">
                 + generate
               </Button>
             )}
-            {/* Non-demo symbols — only show for logged in users with watchlist + Anthropic key */}
-            {!isDemo && isLoggedIn && inWatchlist && hasAnthropicKey && (
+            {!isDemo && isLoggedIn && isEmailVerified && inWatchlist && hasAnthropicKey && (
               <Button onClick={handleGeneratePrediction} disabled={snapshotLoading} loading={generating} loadingText="generating">
                 + generate
               </Button>

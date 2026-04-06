@@ -15,30 +15,35 @@ interface SidebarProps {
   onLogout: () => void;
   onSettingsClick: () => void;
   onSymbolClick: (symbol: string) => void;
+  onVerifyClick: () => void;
 }
 
 export function Sidebar({
-  user: _user,
+  user,
   isLoggedIn,
   watchlist,
   onLoginClick,
   onLogout,
   onSettingsClick,
   onSymbolClick,
+  onVerifyClick,
 }: SidebarProps) {
   const [open, setOpen] = useState(false);
   const [wlExpanded, setWlExpanded] = useState(true);
+  const [tooltip, setTooltip] = useState<{ text: string; y: number } | null>(null);
 
   const hasWatchlist = isLoggedIn && watchlist.length > 0;
+  const needsVerification = isLoggedIn && user && !user.emailVerified;
+  const gearColor = needsVerification ? '#cc8800' : 'var(--color-muted)';
 
   const GearIcon = () => (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="6" stroke="var(--color-muted)" strokeWidth="1.2"/>
-      <circle cx="8" cy="8" r="2.5" stroke="var(--color-muted)" strokeWidth="1.2"/>
-      <line x1="8" y1="1" x2="8" y2="3" stroke="var(--color-muted)" strokeWidth="1.2"/>
-      <line x1="8" y1="13" x2="8" y2="15" stroke="var(--color-muted)" strokeWidth="1.2"/>
-      <line x1="1" y1="8" x2="3" y2="8" stroke="var(--color-muted)" strokeWidth="1.2"/>
-      <line x1="13" y1="8" x2="15" y2="8" stroke="var(--color-muted)" strokeWidth="1.2"/>
+      <circle cx="8" cy="8" r="6" stroke={gearColor} strokeWidth="1.2"/>
+      <circle cx="8" cy="8" r="2.5" stroke={gearColor} strokeWidth="1.2"/>
+      <line x1="8" y1="1" x2="8" y2="3" stroke={gearColor} strokeWidth="1.2"/>
+      <line x1="8" y1="13" x2="8" y2="15" stroke={gearColor} strokeWidth="1.2"/>
+      <line x1="1" y1="8" x2="3" y2="8" stroke={gearColor} strokeWidth="1.2"/>
+      <line x1="13" y1="8" x2="15" y2="8" stroke={gearColor} strokeWidth="1.2"/>
     </svg>
   );
 
@@ -58,6 +63,14 @@ export function Sidebar({
     </svg>
   );
 
+  const VerifyIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M8 2L14 13H2L8 2Z" stroke="#cc8800" strokeWidth="1.2" strokeLinejoin="round"/>
+      <line x1="8" y1="7" x2="8" y2="10" stroke="#cc8800" strokeWidth="1.2" strokeLinecap="round"/>
+      <circle cx="8" cy="12" r="0.5" fill="#cc8800" stroke="#cc8800" strokeWidth="0.5"/>
+    </svg>
+  );
+
   const iconBtn = (
     onClick: () => void,
     icon: React.ReactNode,
@@ -65,51 +78,61 @@ export function Sidebar({
     color: string,
     tooltipText: string,
   ) => (
-    <button
-      onClick={e => { e.stopPropagation(); onClick(); }}
-      title={tooltipText}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: open ? 'flex-start' : 'center',
-        gap: open ? '10px' : '0',
-        padding: '10px',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        background: 'transparent',
-        border: 'none',
-        width: '100%',
+    <div
+      style={{ position: 'relative' }}
+      onMouseEnter={e => {
+        if (!open) {
+          const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+          setTooltip({ text: tooltipText, y: rect.top + rect.height / 2 });
+        }
       }}
-      onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
-      onMouseOut={e => (e.currentTarget.style.background = 'transparent')}
+      onMouseLeave={() => setTooltip(null)}
     >
-      <div style={{
-        width: '20px',
-        height: '20px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-      }}>
-        {icon}
-      </div>
-      {open && (
-        <span style={{
-          fontSize: '11px',
-          fontFamily: 'var(--font-mono)',
-          color,
-          whiteSpace: 'nowrap',
+      <button
+        onClick={e => { e.stopPropagation(); onClick(); }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: open ? 'flex-start' : 'center',
+          gap: open ? '10px' : '0',
+          padding: '10px',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          background: 'transparent',
+          border: 'none',
+          width: '100%',
+        }}
+        onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+        onMouseOut={e => (e.currentTarget.style.background = 'transparent')}
+      >
+        <div style={{
+          width: '20px',
+          height: '20px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
         }}>
-          {label}
-        </span>
-      )}
-    </button>
+          {icon}
+        </div>
+        {open && (
+          <span style={{
+            fontSize: '11px',
+            fontFamily: 'var(--font-mono)',
+            color,
+            whiteSpace: 'nowrap',
+          }}>
+            {label}
+          </span>
+        )}
+      </button>
+    </div>
   );
 
   return (
     <div
-    onClick={() => { if (!open) setOpen(true); }}
-    style={{
+      onClick={() => { if (!open) setOpen(true); }}
+      style={{
         width: open ? '200px' : '48px',
         minWidth: open ? '200px' : '48px',
         background: 'var(--color-surface)',
@@ -121,7 +144,7 @@ export function Sidebar({
         flexShrink: 0,
         cursor: open ? 'default' : 'e-resize',
         height: '100%',
-    }}
+      }}
     >
       {/* Toggle button */}
       <div style={{
@@ -134,7 +157,6 @@ export function Sidebar({
       }}>
         <button
           onClick={e => { e.stopPropagation(); setOpen(prev => !prev); }}
-          title={open ? 'close sidebar' : 'open sidebar'}
           style={{
             background: 'transparent',
             border: 'none',
@@ -157,6 +179,24 @@ export function Sidebar({
       <div style={{ flex: 1, overflowY: 'auto', background: 'var(--color-surface)' }}>
         {isLoggedIn && (
           <>
+            {/* Verification warning — shown when sidebar is open */}
+            {needsVerification && open && (
+              <div style={{
+                margin: '10px 12px',
+                padding: '8px 10px',
+                border: '1px solid #cc8800',
+                borderRadius: '2px',
+                fontSize: '10px',
+                color: '#cc8800',
+                lineHeight: '1.8',
+              }}>
+                <div style={{ marginBottom: '4px' }}>⚠ email not verified</div>
+                <div style={{ color: 'var(--color-muted)' }}>
+                  verify to unlock watchlist, settings, and predictions.
+                </div>
+              </div>
+            )}
+
             <div
               onClick={e => { e.stopPropagation(); hasWatchlist && setWlExpanded(prev => !prev); }}
               style={{
@@ -233,7 +273,9 @@ export function Sidebar({
             {!hasWatchlist && open && (
               <div style={{ padding: '10px 12px' }}>
                 <div style={{ fontSize: '10px', color: 'var(--color-muted)', lineHeight: '1.8' }}>
-                  // empty<br />add a stock to track
+                  {needsVerification
+                    ? '// verify email to\nuse watchlist'
+                    : '// empty\nadd a stock to track'}
                 </div>
               </div>
             )}
@@ -257,11 +299,46 @@ export function Sidebar({
         {!isLoggedIn
           ? iconBtn(onLoginClick, <LoginIcon />, 'login', 'var(--color-accent)', 'login')
           : <>
-              {iconBtn(onSettingsClick, <GearIcon />, 'settings', 'var(--color-muted)', 'settings')}
+              {needsVerification && iconBtn(
+                onVerifyClick,
+                <VerifyIcon />,
+                'verify email',
+                '#cc8800',
+                'verify your email to unlock all features',
+              )}
+              {iconBtn(
+                onSettingsClick,
+                <GearIcon />,
+                'settings',
+                gearColor,
+                needsVerification ? 'verify email to access settings' : 'settings',
+              )}
               {iconBtn(onLogout, <LogoutIcon />, 'logout', 'var(--color-negative)', 'logout')}
             </>
         }
       </div>
+
+      {/* Tooltip — fixed position to escape overflow:hidden */}
+      {tooltip && !open && (
+        <div style={{
+          position: 'fixed',
+          left: '56px',
+          top: tooltip.y,
+          transform: 'translateY(-50%)',
+          backgroundColor: 'var(--color-surface)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '2px',
+          padding: '4px 10px',
+          fontSize: '11px',
+          fontFamily: 'var(--font-mono)',
+          color: 'var(--color-muted)',
+          whiteSpace: 'nowrap',
+          zIndex: 200,
+          pointerEvents: 'none',
+        }}>
+          {tooltip.text}
+        </div>
+      )}
     </div>
   );
 }
