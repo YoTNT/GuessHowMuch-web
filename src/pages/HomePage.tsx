@@ -30,8 +30,11 @@ export function HomePage({ onSearch, loading = false }: HomePageProps) {
           <div style={{ color: 'var(--color-text)', fontSize: '20px', fontWeight: 'bold', marginBottom: '4px' }}>
             GuessHowMuch
           </div>
-          <div style={{ color: 'var(--color-muted)', fontSize: '12px' }}>
-            technical analysis + news sentiment + claude ai
+          <div style={{ color: 'var(--color-muted)', fontSize: '12px', marginBottom: '8px' }}>
+            technical analysis · news sentiment · crowd psychology · claude ai
+          </div>
+          <div style={{ color: 'var(--color-muted)', fontSize: '11px', opacity: 0.7 }}>
+            # self-improving — learns from every verified prediction
           </div>
         </div>
 
@@ -70,7 +73,7 @@ export function HomePage({ onSearch, loading = false }: HomePageProps) {
         display: 'flex',
         justifyContent: 'space-between',
       }}>
-        <span>powered by claude ai + finbert + alpha vantage</span>
+        <span>powered by claude ai · finbert · sentiment engine · alpha vantage</span>
         <span>not financial advice</span>
       </div>
     </div>
