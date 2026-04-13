@@ -44,6 +44,7 @@ export function Sidebar({
 
   const handleOpenLeaderboard = async () => {
     setShowLeaderboard(true);
+    setTooltip(null);
     if (leaderboardData) return; // already loaded
     setLeaderboardLoading(true);
     try {
