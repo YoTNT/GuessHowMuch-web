@@ -481,7 +481,9 @@ export function Sidebar({
                 </div>
 
                 {/* Rows */}
-                {(leaderboardData ?? []).map((item, i) => {
+                {(leaderboardData ?? [])
+                  .filter(item => item.totalPredictions >= 5)
+                  .map((item, i) => {
                   const color = accuracyColor(item.accuracy);
                   const bg = i % 2 === 0 ? 'var(--color-bg)' : 'var(--color-surface)';
                   return (
@@ -512,8 +514,10 @@ export function Sidebar({
                   marginTop: '16px', paddingTop: '12px',
                   borderTop: '1px solid var(--color-border)',
                   fontSize: '10px', color: 'var(--color-muted)', textAlign: 'center',
+                  lineHeight: '1.8',
                 }}>
-                  updated daily · not financial advice
+                  <div>min. 5 predictions to qualify</div>
+                  <div>updated daily · not financial advice</div>
                 </div>
               </>
             )}
