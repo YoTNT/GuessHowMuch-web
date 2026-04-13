@@ -5,6 +5,8 @@ import type {
   NewsArticle,
   Prediction,
   StockOverview,
+  AccuracyEntry,
+  AccuracySummary,
 } from '../types';
 import type { Announcement } from '../components/Banner';
 
@@ -145,6 +147,13 @@ export const api = {
   // ── Announcements ────────────────────────────────────────
   getAnnouncements: () =>
     request<Announcement[]>('/announcements'),
+
+  // ── Accuracy ─────────────────────────────────────────────
+  getAccuracySummary: () =>
+    request<AccuracySummary>('/accuracy/summary'),
+
+  getAccuracyLeaderboard: () =>
+    request<AccuracyEntry[]>('/accuracy?sortBy=accuracy&order=desc'),
 
   // ── Email verification ───────────────────────────────────
   verifyEmail: (token: string) =>

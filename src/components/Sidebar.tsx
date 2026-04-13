@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import type { UserProfile } from '../api/client';
+import type { AccuracyEntry, AccuracySummary } from '../types'
+import { api } from '../api/client';
 
 interface WatchlistItem {
   symbol: string;
@@ -31,10 +33,39 @@ export function Sidebar({
   const [open, setOpen] = useState(false);
   const [wlExpanded, setWlExpanded] = useState(true);
   const [tooltip, setTooltip] = useState<{ text: string; y: number } | null>(null);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboardData, setLeaderboardData] = useState<AccuracyEntry[] | null>(null);
+  const [summaryData, setSummaryData] = useState<AccuracySummary | null>(null);
+  const [leaderboardLoading, setLeaderboardLoading] = useState(false);
 
   const hasWatchlist = isLoggedIn && watchlist.length > 0;
   const needsVerification = isLoggedIn && user && !user.emailVerified;
   const gearColor = needsVerification ? '#cc8800' : 'var(--color-muted)';
+
+  const handleOpenLeaderboard = async () => {
+    setShowLeaderboard(true);
+    if (leaderboardData) return; // already loaded
+    setLeaderboardLoading(true);
+    try {
+      const [summary, entries] = await Promise.all([
+        api.getAccuracySummary(),
+        api.getAccuracyLeaderboard(),
+      ]);
+      setSummaryData(summary);
+      setLeaderboardData(entries);
+    } catch {
+      setLeaderboardData([]);
+    } finally {
+      setLeaderboardLoading(false);
+    }
+  };
+
+  const AccuracyIcon = () => (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <polyline points="2,11 6,7 9,10 14,4" stroke="var(--color-positive)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/>
+      <circle cx="14" cy="4" r="1.5" fill="var(--color-positive)"/>
+    </svg>
+  );
 
   const GearIcon = () => (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -129,216 +160,366 @@ export function Sidebar({
     </div>
   );
 
+  const accuracyColor = (acc: number) =>
+    acc >= 0.6 ? 'var(--color-positive)' : acc >= 0.5 ? '#cc8800' : 'var(--color-negative)';
+
   return (
-    <div
-      onClick={() => { if (!open) setOpen(true); }}
-      style={{
-        width: open ? '200px' : '48px',
-        minWidth: open ? '200px' : '48px',
-        background: 'var(--color-surface)',
-        borderRight: '1px solid var(--color-border)',
-        display: 'flex',
-        flexDirection: 'column',
-        transition: 'width 0.25s ease, min-width 0.25s ease',
-        overflow: 'hidden',
-        flexShrink: 0,
-        cursor: open ? 'default' : 'e-resize',
-        height: '100%',
-      }}
-    >
-      {/* Toggle button */}
-      <div style={{
-        height: '45px',
-        padding: '0 12px',
-        display: 'flex',
-        alignItems: 'center',
-        borderBottom: '1px solid var(--color-border)',
-        flexShrink: 0,
-      }}>
-        <button
-          onClick={e => { e.stopPropagation(); setOpen(prev => !prev); }}
+    <>
+      <div
+        onClick={() => { if (!open) setOpen(true); }}
+        style={{
+          width: open ? '200px' : '48px',
+          minWidth: open ? '200px' : '48px',
+          background: 'var(--color-surface)',
+          borderRight: '1px solid var(--color-border)',
+          display: 'flex',
+          flexDirection: 'column',
+          transition: 'width 0.25s ease, min-width 0.25s ease',
+          overflow: 'hidden',
+          flexShrink: 0,
+          cursor: open ? 'default' : 'e-resize',
+          height: '100%',
+        }}
+      >
+        {/* Toggle button */}
+        <div style={{
+          height: '45px',
+          padding: '0 12px',
+          display: 'flex',
+          alignItems: 'center',
+          borderBottom: '1px solid var(--color-border)',
+          flexShrink: 0,
+        }}>
+          <button
+            onClick={e => { e.stopPropagation(); setOpen(prev => !prev); }}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: open ? 'w-resize' : 'e-resize',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+              padding: '4px',
+            }}
+            onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+            onMouseOut={e => (e.currentTarget.style.background = 'transparent')}
+          >
+            <span style={{ display: 'block', width: '16px', height: '1.5px', background: 'var(--color-muted)' }} />
+            <span style={{ display: 'block', width: '16px', height: '1.5px', background: 'var(--color-muted)' }} />
+            <span style={{ display: 'block', width: '16px', height: '1.5px', background: 'var(--color-muted)' }} />
+          </button>
+        </div>
+
+        {/* Watchlist content */}
+        <div style={{ flex: 1, overflowY: 'auto', background: 'var(--color-surface)' }}>
+          {isLoggedIn && (
+            <>
+              {needsVerification && open && (
+                <div style={{
+                  margin: '10px 12px',
+                  padding: '8px 10px',
+                  border: '1px solid #cc8800',
+                  borderRadius: '2px',
+                  fontSize: '10px',
+                  color: '#cc8800',
+                  lineHeight: '1.8',
+                }}>
+                  <div style={{ marginBottom: '4px' }}>⚠ email not verified</div>
+                  <div style={{ color: 'var(--color-muted)' }}>
+                    verify to unlock watchlist, settings, and predictions.
+                  </div>
+                </div>
+              )}
+
+              <div
+                onClick={e => { e.stopPropagation(); hasWatchlist && setWlExpanded(prev => !prev); }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 12px 6px',
+                  cursor: hasWatchlist ? 'pointer' : 'default',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                }}
+              >
+                <span style={{
+                  fontSize: '10px',
+                  color: 'var(--color-muted)',
+                  opacity: open ? 1 : 0,
+                  transition: 'opacity 0.2s',
+                }}>
+                  // watchlist
+                </span>
+                {hasWatchlist && open && (
+                  <span style={{ fontSize: '10px', color: 'var(--color-muted)' }}>
+                    {wlExpanded ? '⌃' : '⌄'}
+                  </span>
+                )}
+              </div>
+
+              {hasWatchlist && wlExpanded && (
+                <div>
+                  {watchlist.map(item => (
+                    <div
+                      key={item.symbol}
+                      onClick={e => { e.stopPropagation(); onSymbolClick(item.symbol); }}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: open ? '7px 12px' : '0',
+                        height: open ? 'auto' : '0',
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        whiteSpace: 'nowrap',
+                      }}
+                      onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+                      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                    >
+                      <span style={{ fontSize: '11px', color: 'var(--color-accent)', fontWeight: 'bold', minWidth: '36px' }}>
+                        {item.symbol}
+                      </span>
+                      {open && (
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          {item.price !== undefined && (
+                            <span style={{ fontSize: '11px', color: 'var(--color-text)' }}>
+                              ${item.price.toFixed(2)}
+                            </span>
+                          )}
+                          {item.changePercent !== undefined && (
+                            <span style={{
+                              fontSize: '10px',
+                              color: item.changePercent >= 0 ? 'var(--color-positive)' : 'var(--color-negative)',
+                            }}>
+                              {item.changePercent >= 0 ? '+' : ''}{item.changePercent.toFixed(2)}%
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!hasWatchlist && open && (
+                <div style={{ padding: '10px 12px' }}>
+                  <div style={{ fontSize: '10px', color: 'var(--color-muted)', lineHeight: '1.8' }}>
+                    {needsVerification
+                      ? '// verify email to\nuse watchlist'
+                      : '// empty\nadd a stock to track'}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Bottom buttons */}
+        <div
+          onClick={e => e.stopPropagation()}
           style={{
-            background: 'transparent',
-            border: 'none',
-            cursor: open ? 'w-resize' : 'e-resize',
+            padding: '0',
+            borderTop: '3px solid #1f1f1f',
+            background: 'var(--color-surface)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '4px',
-            padding: '4px',
+            gap: '0',
+            flexShrink: 0,
           }}
-          onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
-          onMouseOut={e => (e.currentTarget.style.background = 'transparent')}
         >
-          <span style={{ display: 'block', width: '16px', height: '1.5px', background: 'var(--color-muted)' }} />
-          <span style={{ display: 'block', width: '16px', height: '1.5px', background: 'var(--color-muted)' }} />
-          <span style={{ display: 'block', width: '16px', height: '1.5px', background: 'var(--color-muted)' }} />
-        </button>
-      </div>
+          {/* Accuracy leaderboard — always first, always green */}
+          {iconBtn(
+            handleOpenLeaderboard,
+            <AccuracyIcon />,
+            'accuracy',
+            'var(--color-positive)',
+            'prediction accuracy leaderboard',
+          )}
 
-      {/* Watchlist content */}
-      <div style={{ flex: 1, overflowY: 'auto', background: 'var(--color-surface)' }}>
-        {isLoggedIn && (
-          <>
-            {/* Verification warning — shown when sidebar is open */}
-            {needsVerification && open && (
-              <div style={{
-                margin: '10px 12px',
-                padding: '8px 10px',
-                border: '1px solid #cc8800',
-                borderRadius: '2px',
-                fontSize: '10px',
-                color: '#cc8800',
-                lineHeight: '1.8',
-              }}>
-                <div style={{ marginBottom: '4px' }}>⚠ email not verified</div>
-                <div style={{ color: 'var(--color-muted)' }}>
-                  verify to unlock watchlist, settings, and predictions.
-                </div>
-              </div>
-            )}
+          {!isLoggedIn
+            ? iconBtn(onLoginClick, <LoginIcon />, 'login', 'var(--color-accent)', 'login')
+            : <>
+                {needsVerification && iconBtn(
+                  onVerifyClick,
+                  <VerifyIcon />,
+                  'verify email',
+                  '#cc8800',
+                  'verify your email to unlock all features',
+                )}
+                {iconBtn(
+                  onSettingsClick,
+                  <GearIcon />,
+                  'settings',
+                  gearColor,
+                  needsVerification ? 'verify email to access settings' : 'settings',
+                )}
+                {iconBtn(onLogout, <LogoutIcon />, 'logout', 'var(--color-negative)', 'logout')}
+              </>
+          }
+        </div>
 
-            <div
-              onClick={e => { e.stopPropagation(); hasWatchlist && setWlExpanded(prev => !prev); }}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '10px 12px 6px',
-                cursor: hasWatchlist ? 'pointer' : 'default',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-              }}
-            >
-              <span style={{
-                fontSize: '10px',
-                color: 'var(--color-muted)',
-                opacity: open ? 1 : 0,
-                transition: 'opacity 0.2s',
-              }}>
-                // watchlist
-              </span>
-              {hasWatchlist && open && (
-                <span style={{ fontSize: '10px', color: 'var(--color-muted)' }}>
-                  {wlExpanded ? '⌃' : '⌄'}
-                </span>
-              )}
-            </div>
-
-            {/* Watchlist items */}
-            {hasWatchlist && wlExpanded && (
-              <div>
-                {watchlist.map(item => (
-                  <div
-                    key={item.symbol}
-                    onClick={e => { e.stopPropagation(); onSymbolClick(item.symbol); }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      padding: open ? '7px 12px' : '0',
-                      height: open ? 'auto' : '0',
-                      overflow: 'hidden',
-                      cursor: 'pointer',
-                      whiteSpace: 'nowrap',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
-                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <span style={{ fontSize: '11px', color: 'var(--color-accent)', fontWeight: 'bold', minWidth: '36px' }}>
-                      {item.symbol}
-                    </span>
-                    {open && (
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        {item.price !== undefined && (
-                          <span style={{ fontSize: '11px', color: 'var(--color-text)' }}>
-                            ${item.price.toFixed(2)}
-                          </span>
-                        )}
-                        {item.changePercent !== undefined && (
-                          <span style={{
-                            fontSize: '10px',
-                            color: item.changePercent >= 0 ? 'var(--color-positive)' : 'var(--color-negative)',
-                          }}>
-                            {item.changePercent >= 0 ? '+' : ''}{item.changePercent.toFixed(2)}%
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Empty watchlist */}
-            {!hasWatchlist && open && (
-              <div style={{ padding: '10px 12px' }}>
-                <div style={{ fontSize: '10px', color: 'var(--color-muted)', lineHeight: '1.8' }}>
-                  {needsVerification
-                    ? '// verify email to\nuse watchlist'
-                    : '// empty\nadd a stock to track'}
-                </div>
-              </div>
-            )}
-          </>
+        {/* Tooltip */}
+        {tooltip && !open && (
+          <div style={{
+            position: 'fixed',
+            left: '56px',
+            top: tooltip.y,
+            transform: 'translateY(-50%)',
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '2px',
+            padding: '4px 10px',
+            fontSize: '11px',
+            fontFamily: 'var(--font-mono)',
+            color: 'var(--color-muted)',
+            whiteSpace: 'nowrap',
+            zIndex: 200,
+            pointerEvents: 'none',
+          }}>
+            {tooltip.text}
+          </div>
         )}
       </div>
 
-      {/* Bottom buttons */}
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          padding: '0',
-          borderTop: '3px solid #1f1f1f',
-          background: 'var(--color-surface)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0',
-          flexShrink: 0,
-        }}
-      >
-        {!isLoggedIn
-          ? iconBtn(onLoginClick, <LoginIcon />, 'login', 'var(--color-accent)', 'login')
-          : <>
-              {needsVerification && iconBtn(
-                onVerifyClick,
-                <VerifyIcon />,
-                'verify email',
-                '#cc8800',
-                'verify your email to unlock all features',
-              )}
-              {iconBtn(
-                onSettingsClick,
-                <GearIcon />,
-                'settings',
-                gearColor,
-                needsVerification ? 'verify email to access settings' : 'settings',
-              )}
-              {iconBtn(onLogout, <LogoutIcon />, 'logout', 'var(--color-negative)', 'logout')}
-            </>
-        }
-      </div>
+      {/* Accuracy Leaderboard Modal */}
+      {showLeaderboard && (
+        <div
+          onClick={() => setShowLeaderboard(false)}
+          style={{
+            position: 'fixed', inset: 0,
+            backgroundColor: 'rgba(0,0,0,0.7)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            zIndex: 100,
+          }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              backgroundColor: 'var(--color-surface)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '4px',
+              padding: '24px',
+              width: '100%',
+              maxWidth: '360px',
+              fontFamily: 'var(--font-mono)',
+            }}
+          >
+            {/* Header */}
+            <div style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
+              marginBottom: '20px', paddingBottom: '12px', borderBottom: '1px solid var(--color-border)',
+            }}>
+              <div>
+                <div style={{ color: 'var(--color-positive)', fontSize: '14px', fontWeight: 'bold', marginBottom: '2px' }}>
+                  $ accuracy leaderboard
+                </div>
+                <div style={{ color: 'var(--color-muted)', fontSize: '10px' }}>
+                  prediction accuracy by symbol
+                </div>
+              </div>
+              <button
+                onClick={() => setShowLeaderboard(false)}
+                style={{
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  color: 'var(--color-muted)', fontFamily: 'var(--font-mono)',
+                  fontSize: '11px', padding: '2px 6px',
+                }}
+              >
+                [x]
+              </button>
+            </div>
 
-      {/* Tooltip — fixed position to escape overflow:hidden */}
-      {tooltip && !open && (
-        <div style={{
-          position: 'fixed',
-          left: '56px',
-          top: tooltip.y,
-          transform: 'translateY(-50%)',
-          backgroundColor: 'var(--color-surface)',
-          border: '1px solid var(--color-border)',
-          borderRadius: '2px',
-          padding: '4px 10px',
-          fontSize: '11px',
-          fontFamily: 'var(--font-mono)',
-          color: 'var(--color-muted)',
-          whiteSpace: 'nowrap',
-          zIndex: 200,
-          pointerEvents: 'none',
-        }}>
-          {tooltip.text}
+            {leaderboardLoading ? (
+              <div style={{ color: 'var(--color-muted)', fontSize: '12px', textAlign: 'center', padding: '24px 0' }}>
+                loading...
+              </div>
+            ) : (
+              <>
+                {/* Summary cards */}
+                {summaryData && (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '20px' }}>
+                    <div style={{
+                      backgroundColor: 'var(--color-bg)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '2px', padding: '10px', textAlign: 'center',
+                    }}>
+                      <div style={{ color: 'var(--color-muted)', fontSize: '9px', marginBottom: '4px' }}>overall accuracy</div>
+                      <div style={{ color: 'var(--color-positive)', fontSize: '18px', fontWeight: 'bold' }}>
+                        {(summaryData.overallAccuracy * 100).toFixed(1)}%
+                      </div>
+                    </div>
+                    <div style={{
+                      backgroundColor: 'var(--color-bg)',
+                      border: '1px solid var(--color-border)',
+                      borderRadius: '2px', padding: '10px', textAlign: 'center',
+                    }}>
+                      <div style={{ color: 'var(--color-muted)', fontSize: '9px', marginBottom: '4px' }}>best symbol</div>
+                      <div style={{ color: 'var(--color-positive)', fontSize: '14px', fontWeight: 'bold' }}>
+                        {summaryData.bestSymbol ?? '—'}
+                      </div>
+                      {summaryData.bestSymbol && leaderboardData && (
+                        <div style={{ color: 'var(--color-muted)', fontSize: '9px' }}>
+                          {((leaderboardData.find(e => e.symbol === summaryData.bestSymbol)?.accuracy ?? 0) * 100).toFixed(1)}%
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Table header */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: '24px 56px 1fr 56px',
+                  padding: '5px 8px',
+                  borderBottom: '1px solid var(--color-border)',
+                }}>
+                  <span style={{ color: 'var(--color-muted)', fontSize: '9px' }}>#</span>
+                  <span style={{ color: 'var(--color-muted)', fontSize: '9px' }}>symbol</span>
+                  <span></span>
+                  <span style={{ color: 'var(--color-muted)', fontSize: '9px', textAlign: 'right' }}>accuracy</span>
+                </div>
+
+                {/* Rows */}
+                {(leaderboardData ?? []).map((item, i) => {
+                  const color = accuracyColor(item.accuracy);
+                  const bg = i % 2 === 0 ? 'var(--color-bg)' : 'var(--color-surface)';
+                  return (
+                    <div
+                      key={item.symbol}
+                      style={{
+                        display: 'grid',
+                        gridTemplateColumns: '24px 56px 1fr 56px',
+                        alignItems: 'center',
+                        padding: '7px 8px',
+                        backgroundColor: bg,
+                      }}
+                    >
+                      <span style={{ color: 'var(--color-muted)', fontSize: '10px' }}>{i + 1}</span>
+                      <span style={{ color: 'var(--color-accent)', fontSize: '11px', fontWeight: 'bold' }}>{item.symbol}</span>
+                      <div style={{ height: '3px', background: 'var(--color-border)', borderRadius: '1px', overflow: 'hidden', margin: '0 8px' }}>
+                        <div style={{ width: `${item.accuracy * 100}%`, height: '100%', background: color, borderRadius: '1px' }} />
+                      </div>
+                      <span style={{ color, fontSize: '11px', textAlign: 'right' }}>
+                        {(item.accuracy * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  );
+                })}
+
+                {/* Footer */}
+                <div style={{
+                  marginTop: '16px', paddingTop: '12px',
+                  borderTop: '1px solid var(--color-border)',
+                  fontSize: '10px', color: 'var(--color-muted)', textAlign: 'center',
+                }}>
+                  updated daily · not financial advice
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
