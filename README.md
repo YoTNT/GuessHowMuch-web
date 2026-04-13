@@ -25,6 +25,7 @@ The frontend of [GuessHowMuch](https://github.com/YoTNT/GuessHowMuch) — an AI-
 - **Confidence level display** — Prediction card shows color-coded confidence warning (red/orange/green) based on historical accuracy
 - **Email verification** — Token-based email verification flow with 24-hour expiry, resend support, and Homebrew-styled welcome page
 - **Permission-based UI** — Feature restrictions based on verification state, with orange visual cues guiding users to verify their email
+- **Accuracy Leaderboard** — Sidebar icon opens a live accuracy leaderboard showing prediction accuracy per symbol, color-coded by performance (green/orange/red), available to all users
 
 ---
 
@@ -190,6 +191,7 @@ aws cloudfront create-invalidation \
 - [x] Email verification flow (register → check email modal → verify page → feature unlock)
 - [x] Permission-based UI (unverified users see orange warnings, features locked with clear guidance)
 - [x] Homebrew-style custom tooltips in sidebar
+- [x] Accuracy leaderboard modal in sidebar (live data, available to all users, color-coded by performance)
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design

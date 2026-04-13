@@ -106,3 +106,23 @@ export interface Stock {
     updatedAt: string;
     expiresAt: number;
   }
+
+  export interface AccuracyEntry {
+    symbol: string;
+    accuracy: number;
+    totalPredictions: number;
+    correctPredictions: number;
+    consecutiveWrong: number;
+    avgPriceDeviationPct: number;
+    lastUpdated: string;
+  }
+  
+  export interface AccuracySummary {
+    overallAccuracy: number;
+    totalPredictions: number;
+    totalCorrect: number;
+    symbolCount: number;
+    bestSymbol: string | null;
+    worstSymbol: string | null;
+    abTesting: Record<string, { total: number; correct: number; accuracy: number }>;
+  }
