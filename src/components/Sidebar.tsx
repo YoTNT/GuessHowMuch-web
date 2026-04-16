@@ -482,33 +482,115 @@ export function Sidebar({
                 </div>
 
                 {/* Rows */}
-                {(leaderboardData ?? [])
-                  .filter(item => item.totalPredictions >= 5)
-                  .map((item, i) => {
-                  const color = accuracyColor(item.accuracy);
-                  const bg = i % 2 === 0 ? 'var(--color-bg)' : 'var(--color-surface)';
-                  return (
-                    <div
-                      key={item.symbol}
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: '24px 56px 1fr 56px',
-                        alignItems: 'center',
-                        padding: '7px 8px',
-                        backgroundColor: bg,
-                      }}
-                    >
-                      <span style={{ color: 'var(--color-muted)', fontSize: '10px' }}>{i + 1}</span>
-                      <span style={{ color: 'var(--color-accent)', fontSize: '11px', fontWeight: 'bold' }}>{item.symbol}</span>
-                      <div style={{ height: '3px', background: 'var(--color-border)', borderRadius: '1px', overflow: 'hidden', margin: '0 8px' }}>
-                        <div style={{ width: `${item.accuracy * 100}%`, height: '100%', background: color, borderRadius: '1px' }} />
+                {(() => {
+                  const qualified = (leaderboardData ?? []).filter(item => item.totalPredictions >= 5);
+                  if (qualified.length === 0) {
+                    return (
+                      <div style={{
+                        padding: '16px 8px',
+                        color: 'var(--color-muted)',
+                        fontSize: '10px',
+                        textAlign: 'center',
+                        lineHeight: '1.8',
+                      }}>
+                        // no symbols qualify yet<br />
+                        need at least 5 predictions per symbol
                       </div>
-                      <span style={{ color, fontSize: '11px', textAlign: 'right' }}>
-                        {(item.accuracy * 100).toFixed(1)}%
-                      </span>
+                    );
+                  }
+                  return qualified.map((item, i) => {
+                    const color = accuracyColor(item.accuracy);
+                    const bg = i % 2 === 0 ? 'var(--color-bg)' : 'var(--color-surface)';
+                    return (
+                      <div
+                        key={item.symbol}
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: '24px 56px 1fr 56px',
+                          alignItems: 'center',
+                          padding: '7px 8px',
+                          backgroundColor: bg,
+                        }}
+                      >
+                        <span style={{ color: 'var(--color-muted)', fontSize: '10px' }}>{i + 1}</span>
+                        <span style={{ color: 'var(--color-accent)', fontSize: '11px', fontWeight: 'bold' }}>{item.symbol}</span>
+                        <div style={{ height: '3px', background: 'var(--color-border)', borderRadius: '1px', overflow: 'hidden', margin: '0 8px' }}>
+                          <div style={{ width: `${item.accuracy * 100}%`, height: '100%', background: color, borderRadius: '1px' }} />
+                        </div>
+                        <span style={{ color, fontSize: '11px', textAlign: 'right' }}>
+                          {(item.accuracy * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                    );
+                  });
+                })()}
+
+                {/* By prompt version */}
+                {summaryData && Object.keys(summaryData.abTesting).length > 0 && (
+                  <div style={{ marginTop: '20px' }}>
+                    <div style={{
+                      color: 'var(--color-muted)',
+                      fontSize: '9px',
+                      padding: '0 8px 6px',
+                      borderBottom: '1px solid var(--color-border)',
+                    }}>
+                      // by prompt version
                     </div>
-                  );
-                })}
+
+                    {Object.entries(summaryData.abTesting)
+                      .sort(([, a], [, b]) => b.accuracy - a.accuracy)
+                      .map(([version, stats], i) => {
+                        const color = accuracyColor(stats.accuracy);
+                        const bg = i % 2 === 0 ? 'var(--color-bg)' : 'var(--color-surface)';
+                        const conf = stats.confidence;
+                        const confColor =
+                          conf === 'high' ? 'var(--color-positive)'
+                          : conf === 'medium' ? '#cc8800'
+                          : 'var(--color-negative)';
+                        const confLabel =
+                          conf === 'high' ? 'high confidence'
+                          : conf === 'medium' ? 'medium confidence'
+                          : 'low confidence · sample too small';
+
+                        return (
+                          <div
+                            key={version}
+                            style={{
+                              padding: '7px 8px',
+                              backgroundColor: bg,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '3px',
+                            }}
+                          >
+                            <div style={{
+                              display: 'grid',
+                              gridTemplateColumns: '1fr auto 56px',
+                              alignItems: 'center',
+                              gap: '8px',
+                            }}>
+                              <span style={{ color: 'var(--color-accent)', fontSize: '11px', fontWeight: 'bold' }}>
+                                {version}
+                              </span>
+                              <span style={{ color: 'var(--color-muted)', fontSize: '10px' }}>
+                                {stats.correct}/{stats.total}
+                              </span>
+                              <span style={{ color, fontSize: '11px', textAlign: 'right' }}>
+                                {(stats.accuracy * 100).toFixed(1)}%
+                              </span>
+                            </div>
+                            <div style={{
+                              fontSize: '9px',
+                              color: confColor,
+                              paddingLeft: '2px',
+                            }}>
+                              {conf === 'low' ? '⚠ ' : '· '}{confLabel}
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
 
                 {/* Footer */}
                 <div style={{
