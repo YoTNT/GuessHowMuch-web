@@ -107,6 +107,15 @@ export interface Stock {
     expiresAt: number;
   }
 
+  export type ConfidenceTier = 'low' | 'medium' | 'high';
+
+  export interface PromptVersionStats {
+    total: number;
+    correct: number;
+    accuracy: number;
+    confidence: ConfidenceTier;
+  }
+
   export interface AccuracyEntry {
     symbol: string;
     accuracy: number;
@@ -124,5 +133,5 @@ export interface Stock {
     symbolCount: number;
     bestSymbol: string | null;
     worstSymbol: string | null;
-    abTesting: Record<string, { total: number; correct: number; accuracy: number }>;
+    abTesting: Record<string, PromptVersionStats>;
   }

@@ -192,6 +192,11 @@ aws cloudfront create-invalidation \
 - [x] Permission-based UI (unverified users see orange warnings, features locked with clear guidance)
 - [x] Homebrew-style custom tooltips in sidebar
 - [x] Accuracy leaderboard modal in sidebar (live data, available to all users, color-coded by performance)
+- [x] A/B testing section in accuracy leaderboard modal
+  - [x] "// by prompt version" section showing v1 vs v2 comparison
+  - [x] Confidence tier display (high/medium/low) with color coding
+  - [x] Low confidence warning ("⚠ sample too small") for statistically insignificant versions
+  - [x] Empty state for "by symbol" section when no symbols qualify (< 5 predictions)
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design
