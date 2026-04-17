@@ -43,6 +43,7 @@ export function StockPage({
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [generateSuccess, setGenerateSuccess] = useState(false);
+  const [generateCached, setGenerateCached] = useState(false);
   const [addingToWatchlist, setAddingToWatchlist] = useState(false);
   const [watchlistError, setWatchlistError] = useState<string | null>(null);
   const [inWatchlist, setInWatchlist] = useState(isInWatchlist);
@@ -80,10 +81,16 @@ export function StockPage({
     setGenerating(true);
     setGenerateError(null);
     setGenerateSuccess(false);
+    setGenerateCached(false);
     try {
-      await generatePrediction(symbol);
-      setGenerateSuccess(true);
-      setTimeout(() => setGenerateSuccess(false), 3000);
+      const result = await generatePrediction(symbol);
+      if (result?.cached) {
+        setGenerateCached(true);
+        setTimeout(() => setGenerateCached(false), 3000);
+      } else {
+        setGenerateSuccess(true);
+        setTimeout(() => setGenerateSuccess(false), 3000);
+      }
     } catch (err) {
       setGenerateError(err instanceof Error ? err.message : 'Failed to generate prediction');
     } finally {
@@ -128,6 +135,19 @@ export function StockPage({
           {generateSuccess && (
             <div style={{ border: '1px solid var(--color-positive)', backgroundColor: 'rgba(0, 255, 136, 0.05)', padding: '10px 12px', borderRadius: '4px', marginBottom: '12px', fontSize: '12px', color: 'var(--color-positive)' }}>
               [OK] Prediction generated successfully
+            </div>
+          )}
+          {generateCached && (
+            <div style={{
+              border: '1px solid var(--color-muted)',
+              backgroundColor: 'rgba(255, 255, 255, 0.03)',
+              padding: '10px 12px',
+              borderRadius: '4px',
+              marginBottom: '12px',
+              fontSize: '12px',
+              color: 'var(--color-muted)',
+            }}>
+              [INFO] Today's prediction is already available — showing cached result
             </div>
           )}
           {!snapshotLoading && predictions.length === 0 && (
@@ -226,6 +246,19 @@ export function StockPage({
         {generateSuccess && (
           <div style={{ border: '1px solid var(--color-positive)', backgroundColor: 'rgba(0, 255, 136, 0.05)', padding: '10px 12px', borderRadius: '4px', marginBottom: '12px', fontSize: '12px', color: 'var(--color-positive)' }}>
             [OK] Prediction generated successfully
+          </div>
+        )}
+        {generateCached && (
+          <div style={{
+            border: '1px solid var(--color-muted)',
+            backgroundColor: 'rgba(255, 255, 255, 0.03)',
+            padding: '10px 12px',
+            borderRadius: '4px',
+            marginBottom: '12px',
+            fontSize: '12px',
+            color: 'var(--color-muted)',
+          }}>
+            [INFO] Today's prediction is already available — showing cached result
           </div>
         )}
         {!snapshotLoading && predictions.length === 0 && (
