@@ -81,6 +81,7 @@ export interface Stock {
     actualPrice?: number;
     actualDirection?: PredictionDirection;
     wasCorrect?: boolean;
+    cached?: boolean;  // true if returned from cache, false/undefined if freshly generated
   }
   
   export interface StockSnapshot {
