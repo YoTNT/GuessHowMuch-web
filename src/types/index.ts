@@ -136,3 +136,9 @@ export interface Stock {
     worstSymbol: string | null;
     abTesting: Record<string, PromptVersionStats>;
   }
+
+  // ─── Symbol Search ─────────────────────────────────────
+  export interface SymbolSearchResult {
+    symbol: string;
+    name: string;
+  }

@@ -7,6 +7,7 @@ import type {
   StockOverview,
   AccuracyEntry,
   AccuracySummary,
+  SymbolSearchResult,
 } from '../types';
 import type { Announcement } from '../components/Banner';
 
@@ -161,4 +162,8 @@ export const api = {
 
   resendVerification: () =>
     request<void>('/auth/resend-verification', { method: 'POST' }),
+
+  // ── Search ──────────────────────────────────────────────
+  searchSymbols: (query: string) =>
+    request<SymbolSearchResult[]>(`/search?q=${encodeURIComponent(query)}`),
 };

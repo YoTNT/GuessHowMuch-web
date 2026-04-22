@@ -26,6 +26,7 @@ The frontend of [GuessHowMuch](https://github.com/YoTNT/GuessHowMuch) — an AI-
 - **Email verification** — Token-based email verification flow with 24-hour expiry, resend support, and Homebrew-styled welcome page
 - **Permission-based UI** — Feature restrictions based on verification state, with orange visual cues guiding users to verify their email
 - **Accuracy Leaderboard** — Sidebar icon opens a live accuracy leaderboard showing prediction accuracy per symbol, color-coded by performance (green/orange/red), available to all users
+- **Symbol search with autocomplete** — Type a ticker or company name to see matching US equities in a dropdown; ↑↓ navigate, Enter selects, Esc closes. Falls back to direct-analyze for single-letter tickers (T=AT&T, F=Ford, V=Visa)
 
 ---
 
@@ -197,6 +198,12 @@ aws cloudfront create-invalidation \
   - [x] Confidence tier display (high/medium/low) with color coding
   - [x] Low confidence warning ("⚠ sample too small") for statistically insignificant versions
   - [x] Empty state for "by symbol" section when no symbols qualify (< 5 predictions)
+- [x] Symbol search with autocomplete
+  - [x] Debounced queries (300ms) against /api/search with 2-char minimum
+  - [x] Keyboard navigation (↑↓ Enter Esc) + click-outside to close
+  - [x] Homebrew-styled dropdown matching existing SearchBar aesthetic
+  - [x] Direct-analyze fallback path for single-letter tickers (T, F, V)
+  - [x] Hook extraction (useSymbolSearch) for future reuse (e.g. Cmd+K palette)
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design
