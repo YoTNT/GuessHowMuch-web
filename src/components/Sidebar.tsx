@@ -3,6 +3,10 @@ import type { UserProfile } from '../api/client';
 import type { AccuracyEntry, AccuracySummary } from '../types'
 import { api } from '../api/client';
 
+// Minimum sample size for a prompt version to appear in the leaderboard.
+// Below this, the version is hidden (still tracked in DB for history).
+const MIN_VERSION_SAMPLES = 10;
+
 interface WatchlistItem {
   symbol: string;
   price?: number;
@@ -526,20 +530,28 @@ export function Sidebar({
                 })()}
 
                 {/* By prompt version */}
-                {summaryData && Object.keys(summaryData.abTesting).length > 0 && (
-                  <div style={{ marginTop: '20px' }}>
-                    <div style={{
-                      color: 'var(--color-muted)',
-                      fontSize: '9px',
-                      padding: '0 8px 6px',
-                      borderBottom: '1px solid var(--color-border)',
-                    }}>
-                      // by prompt version
-                    </div>
+                {summaryData && Object.keys(summaryData.abTesting).length > 0 && (() => {
+                  const allEntries = Object.entries(summaryData.abTesting);
+                  const visibleEntries = allEntries
+                    .filter(([, stats]) => stats.total >= MIN_VERSION_SAMPLES)
+                    .sort(([, a], [, b]) => b.accuracy - a.accuracy);
+                  const hiddenCount = allEntries.length - visibleEntries.length;
 
-                    {Object.entries(summaryData.abTesting)
-                      .sort(([, a], [, b]) => b.accuracy - a.accuracy)
-                      .map(([version, stats], i) => {
+                  // Skip the entire section if nothing visible AND nothing hidden
+                  if (visibleEntries.length === 0 && hiddenCount === 0) return null;
+
+                  return (
+                    <div style={{ marginTop: '20px' }}>
+                      <div style={{
+                        color: 'var(--color-muted)',
+                        fontSize: '9px',
+                        padding: '0 8px 6px',
+                        borderBottom: '1px solid var(--color-border)',
+                      }}>
+                        // by prompt version
+                      </div>
+
+                      {visibleEntries.map(([version, stats], i) => {
                         const color = accuracyColor(stats.accuracy);
                         const bg = i % 2 === 0 ? 'var(--color-bg)' : 'var(--color-surface)';
                         const conf = stats.confidence;
@@ -589,8 +601,22 @@ export function Sidebar({
                           </div>
                         );
                       })}
-                  </div>
-                )}
+
+                      {hiddenCount > 0 && (
+                        <div style={{
+                          padding: '8px',
+                          fontSize: '9px',
+                          color: 'var(--color-muted)',
+                          textAlign: 'center',
+                          fontStyle: 'italic',
+                          opacity: 0.7,
+                        }}>
+                          // {hiddenCount} version{hiddenCount > 1 ? 's' : ''} hidden (sample &lt; {MIN_VERSION_SAMPLES})
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
 
                 {/* Footer */}
                 <div style={{
