@@ -27,6 +27,7 @@ The frontend of [GuessHowMuch](https://github.com/YoTNT/GuessHowMuch) — an AI-
 - **Permission-based UI** — Feature restrictions based on verification state, with orange visual cues guiding users to verify their email
 - **Accuracy Leaderboard** — Sidebar icon opens a live accuracy leaderboard showing prediction accuracy per symbol, color-coded by performance (green/orange/red), available to all users
 - **Symbol search with autocomplete** — Type a ticker or company name to see matching US equities in a dropdown; ↑↓ navigate, Enter selects, Esc closes. Falls back to direct-analyze for single-letter tickers (T=AT&T, F=Ford, V=Visa)
+- **Prediction history chart** — Stock page shows a 7-day line chart comparing predicted vs actual prices, with green/red ring markers indicating direction correctness — immediate visual evidence of the system's track record
 
 ---
 
@@ -204,6 +205,13 @@ aws cloudfront create-invalidation \
   - [x] Homebrew-styled dropdown matching existing SearchBar aesthetic
   - [x] Direct-analyze fallback path for single-letter tickers (T, F, V)
   - [x] Hook extraction (useSymbolSearch) for future reuse (e.g. Cmd+K palette)
+- [x] Prediction history chart on stock page
+  - [x] 7-day line chart comparing predicted (dashed) vs actual (solid) prices
+  - [x] Color-coded accuracy header (green ≥60%, orange 45-60%, red <45%)
+  - [x] Ring markers on actual points — green for correct direction, red for wrong
+  - [x] Unverified predictions excluded — only shows settled data
+  - [x] Adaptive subtitle ("most recent right" when ≥7 points, "N days of verified history" when fewer)
+  - [x] Auto-hides when symbol has no verified predictions
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design

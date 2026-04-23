@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useStock } from '../hooks/useStock';
 import { QuoteCard } from '../components/QuoteCard';
 import { PredictionCard } from '../components/PredictionCard';
+import { PredictionHistoryChart } from '../components/PredictionHistoryChart';
 import { NewsCard } from '../components/NewsCard';
 import { IndicatorsCard } from '../components/IndicatorsCard';
 import { QuoteCardSkeleton, IndicatorsCardSkeleton, NewsCardSkeleton } from '../components/Skeleton';
@@ -169,6 +170,7 @@ export function StockPage({
           {predictions.map(prediction => (
             <PredictionCard key={prediction.id} prediction={prediction} />
           ))}
+          <PredictionHistoryChart symbol={symbol} />
         </>
       );
     }
@@ -269,6 +271,7 @@ export function StockPage({
         {predictions.map(prediction => (
           <PredictionCard key={prediction.id} prediction={prediction} />
         ))}
+        <PredictionHistoryChart symbol={symbol} />
       </>
     );
   };
