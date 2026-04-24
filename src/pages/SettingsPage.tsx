@@ -61,7 +61,7 @@ function ApiKeyField({ label, description, unlocks, link, value, onChange, requi
 }
 
 export function SettingsPage({ user, onBack, onUpdateUser }: SettingsPageProps) {
-  const [keys, setKeys] = useState({ alphaVantage: "", anthropic: "", newsApi: "", huggingFace: "" });
+  const [keys, setKeys] = useState({ alphaVantage: "", anthropic: "", finnhub: "", huggingFace: "" });
 
   // Guard — unverified users cannot access settings
   if (!user.emailVerified) {
@@ -91,7 +91,7 @@ export function SettingsPage({ user, onBack, onUpdateUser }: SettingsPageProps) 
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const hasChanges = keys.alphaVantage !== "" || keys.anthropic !== "" || keys.newsApi !== "" || keys.huggingFace !== "";
+  const hasChanges = keys.alphaVantage !== "" || keys.anthropic !== "" || keys.finnhub !== "" || keys.huggingFace !== "";
 
   const handleSave = async () => {
     setSaving(true);
@@ -100,12 +100,12 @@ export function SettingsPage({ user, onBack, onUpdateUser }: SettingsPageProps) 
     const updates: Record<string, string> = {};
     if (keys.alphaVantage) updates.alphaVantage = keys.alphaVantage;
     if (keys.anthropic) updates.anthropic = keys.anthropic;
-    if (keys.newsApi) updates.newsApi = keys.newsApi;
+    if (keys.finnhub) updates.finnhub = keys.finnhub;
     if (keys.huggingFace) updates.huggingFace = keys.huggingFace;
     try {
       const updated = await api.updateApiKeys(updates);
       onUpdateUser(updated);
-      setKeys({ alphaVantage: "", anthropic: "", newsApi: "", huggingFace: "" });
+      setKeys({ alphaVantage: "", anthropic: "", finnhub: "", huggingFace: "" });
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
     } catch (err) {
@@ -130,7 +130,7 @@ export function SettingsPage({ user, onBack, onUpdateUser }: SettingsPageProps) 
           {[
             { label: "Alpha Vantage", value: user.apiKeys.alphaVantage },
             { label: "Anthropic", value: user.apiKeys.anthropic },
-            { label: "NewsAPI", value: user.apiKeys.newsApi },
+            { label: "Finnhub", value: user.apiKeys.finnhub },
             { label: "HuggingFace", value: user.apiKeys.huggingFace },
           ].map(({ label, value }) => (
             <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "4px 0", borderBottom: "1px solid var(--color-border)" }}>
@@ -144,7 +144,7 @@ export function SettingsPage({ user, onBack, onUpdateUser }: SettingsPageProps) 
         <div style={{ color: "var(--color-muted)", fontSize: "11px", marginBottom: "12px" }}>// update api keys</div>
         <ApiKeyField label="Alpha Vantage" description="Required for real-time stock data and historical prices" unlocks="stock quotes, technical indicators, historical data" link="https://www.alphavantage.co/support/#api-key" value={keys.alphaVantage} onChange={val => setKeys(prev => ({ ...prev, alphaVantage: val }))} required />
         <ApiKeyField label="Anthropic" description="Claude AI for generating stock predictions and news analysis" unlocks="AI predictions, deep news sentiment analysis" link="https://console.anthropic.com" value={keys.anthropic} onChange={val => setKeys(prev => ({ ...prev, anthropic: val }))} />
-        <ApiKeyField label="NewsAPI" description="Real-time financial news from hundreds of sources" unlocks="news sentiment analysis" link="https://newsapi.org/register" value={keys.newsApi} onChange={val => setKeys(prev => ({ ...prev, newsApi: val }))} />
+        <ApiKeyField label="Finnhub" description="Realtime financial news + stock data (no delay)" unlocks="news sentiment analysis" link="https://finnhub.io/register" value={keys.finnhub} onChange={val => setKeys(prev => ({ ...prev, finnhub: val }))} />
         <ApiKeyField label="HuggingFace" description="FinBERT financial sentiment model via HuggingFace Inference API" unlocks="FinBERT sentiment analysis (improves prediction accuracy)" link="https://huggingface.co/settings/tokens" value={keys.huggingFace} onChange={val => setKeys(prev => ({ ...prev, huggingFace: val }))} />
       </div>
       {saveError && (

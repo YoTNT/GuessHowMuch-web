@@ -212,6 +212,11 @@ aws cloudfront create-invalidation \
   - [x] Unverified predictions excluded — only shows settled data
   - [x] Adaptive subtitle ("most recent right" when ≥7 points, "N days of verified history" when fewer)
   - [x] Auto-hides when symbol has no verified predictions
+- [x] Finnhub BYOK integration (replaces NewsAPI)
+  - [x] Settings page shows "Finnhub" key field with https://finnhub.io/register link
+  - [x] Description updated to highlight realtime news (vs NewsAPI's 24h delay)
+  - [x] StockPage prompt updated for unverified/no-key users
+  - [x] Type system migrated: apiKeys.newsApi → apiKeys.finnhub
 - [ ] Conversational UI (second phase)
 - [ ] Portfolio tracking dashboard
 - [ ] Mobile responsive design

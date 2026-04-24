@@ -62,7 +62,7 @@ export interface UserProfile {
   apiKeys: {
     alphaVantage?: string;
     anthropic?: string;
-    newsApi?: string;
+    finnhub?: string;
     huggingFace?: string;
   };
   watchlist: string[];
@@ -99,7 +99,7 @@ export const api = {
   updateApiKeys: (keys: {
     alphaVantage?: string;
     anthropic?: string;
-    newsApi?: string;
+    finnhub?: string;
     huggingFace?: string;
   }) =>
     request<UserProfile>('/users/api-keys', {

@@ -62,7 +62,7 @@ export function StockPage({
 
   const hasAlphaVantageKey = !!user?.apiKeys?.alphaVantage;
   const hasAnthropicKey = !!user?.apiKeys?.anthropic;
-  const hasNewsApiKey = !!user?.apiKeys?.newsApi;
+  const hasNewsApiKey = !!user?.apiKeys?.finnhub;
 
   const handleAddToWatchlist = async () => {
     setAddingToWatchlist(true);
@@ -368,7 +368,7 @@ export function StockPage({
           ) : isLoggedIn && isEmailVerified && !hasNewsApiKey && !isDemo ? (
             <div style={{ border: '1px solid var(--color-border)', borderRadius: '4px', padding: '16px', fontSize: '11px' }}>
               <div style={{ color: 'var(--color-muted)', marginBottom: '10px' }}>
-                [INFO] add your NewsAPI key to unlock news sentiment analysis
+                [INFO] add your Finnhub key to unlock news sentiment analysis
               </div>
               <button
                 onClick={onSettingsClick}
